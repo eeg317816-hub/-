@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全职高手 - 职业选手APM手速测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background: #0a0a12;
+            background-image: radial-gradient(#181828 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: #eee;
+            overflow: hidden;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            text-align: center;
+            padding: 15px 0;
+            border-bottom: 2px solid #ff3344;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+        h1 {
+            font-size: 32px;
+            color: #ff3344;
+            letter-spacing: 4px;
+            text-shadow: 0 0 12px #ff334480;
+        }
+        .sub-title {
+            color: #aaa;
+            margin-top: 6px;
+        }
+        /* 右上角生命值 */
+        .life-wrap {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 10px;
+        }
+        .heart {
+            font-size: 32px;
+            color: #ff3344;
+            transition: 0.3s;
+            text-shadow: 0 0 8px #ff3344;
+        }
+        .heart.gray {
+            color: #444;
+            text-shadow: none;
+        }
+        /* 时长选择 */
+        .time-select-box {
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .time-select-box label {
+            color: #aaa;
+        }
+        #timeSelect {
+            background: #181830;
+            color: #fff;
+            border: 1px solid #ff334450;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .main-wrap {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 24px;
+            flex: 1;
+        }
+        /* 左侧数据面板 */
+        .panel-left {
+            background: #121220;
+            border: 1px solid #ff334440;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .data-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #222;
+        }
+        .data-label {
+            color: #999;
+        }
+        .data-val {
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+        }
+        .rank-box {
+            margin: 20px 0;
+            text-align: center;
+            padding: 16px;
+            background: #181830;
+            border-radius: 8px;
+        }
+        .rank-text {
+            font-size: 48px;
+            font-weight: bold;
+            color: #ff3344;
+        }
+        .xp-area {
+            margin-top: 20px;
+        }
+        .xp-bar-wrap {
+            width: 100%;
+            height: 10px;
+            background: #222;
+            border-radius: 5px;
+            margin: 8px 0;
+        }
+        .xp-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ff3344, #ff7733);
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+        .ach-title {
+            margin-top: 24px;
+            font-size: 16px;
+            color: #ff9944;
+            margin-bottom: 10px;
+        }
+        .ach-list {
+            font-size: 13px;
+            color: #bbb;
+            line-height: 1.8;
+        }
+        /* 中间测试主区域 */
+        .test-area {
+            background: #0e0e1a;
+            border: 1px solid #ff334430;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            tabindex: 0;
+        }
+        .start-tip {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+        }
+        .start-btn {
+            padding: 14px 40px;
+            font-size: 20px;
+            background: #ff3344;
+            border: none;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: 0.2s;
+        }
+        .start-btn:hover {
+            background: #ff5555;
+            box-shadow: 0 0 16px #ff334480;
+        }
+        .target-dot {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(#fff, #ff3344);
+            position: absolute;
+            cursor: pointer;
+            box-shadow: 0 0 20px #ff3344;
+            animation: pulse 0.8s infinite alternate;
+        }
+        @keyframes pulse {
+            from { transform: scale(0.95); }
+            to { transform: scale(1.05); }
+        }
+        .key-hint {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: #222;
+            border: 3px solid #ff3344;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 42px;
+            font-weight: bold;
+            color: #fff;
+        }
+        .countdown-text {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 36px;
+            color: #ff3344;
+            z-index: 5;
+        }
+        .hidden {
+            display: none !important;
+        }
+        /* 结算弹窗 */
+        .result-mask {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            z-index: 99;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .result-card {
+            width: 520px;
+            background: linear-gradient(180deg, #221418, #11090c);
+            border: 1px solid #ff444460;
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+            box-shadow: 0 0 30px #ff334440;
+        }
+        .result-title {
+            font-size: 26px;
+            color: #ffdddd;
+            margin-bottom: 12px;
+        }
+        .result-apm-big {
+            font-size: 64px;
+            font-weight: bold;
+            color: #fff;
+            line-height: 1;
+            margin: 16px 0 8px;
+        }
+        .result-rank-tag {
+            display: inline-block;
+            padding: 6px 22px;
+            background: #ff3344;
+            border-radius: 30px;
+            font-size: 18px;
+            margin-bottom: 24px;
+        }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .stat-item {
+            background: #ffffff12;
+            border-radius: 10px;
+            padding: 14px 8px;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #bbb;
+            margin-bottom: 4px;
+        }
+        .stat-value {
+            font-size: 24px;
+            color: #fff;
+            font-weight: bold;
+        }
+        .stat-value.err {
+            color: #ff7777;
+        }
+        .xp-tip {
+            color: #ffaa66;
+            font-size: 16px;
+            margin: 24px 0;
+        }
+        .btn-group {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+        }
+        .result-btn {
+            padding: 12px 32px;
+            border-radius: 8px;
+            border: none;
+            font-size: 17px;
+            cursor: pointer;
+        }
+        .btn-again {
+            background: #ff3344;
+            color: white;
+        }
+        .btn-close {
+            background: #333;
+            color: #ddd;
+        }
+        .desc-footer {
+            margin-top: 16px;
+            font-size: 13px;
+            color: #888;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>全职高手 · APM职业手速测试</h1>
+                <div class="sub-title">限时键鼠交替手速挑战 | 跨类型操作直接判定失误</div>
+                <div class="time-select-box">
+                    <label>测试时长：</label>
+                    <select id="timeSelect">
+                        <option value="15">15秒</option>
+                        <option value="30" selected>30秒</option>
+                        <option value="45">45秒</option>
+                        <option value="60">60秒</option>
+                    </select>
+                </div>
+            </div>
+            <div class="life-wrap" id="lifeWrap">
+                <span class="heart">❤</span>
+                <span class="heart">❤</span>
+                <span class="heart">❤</span>
+            </div>
+        </header>
+        <div class="main-wrap">
+            <div class="panel-left">
+                <div class="data-item">
+                    <span class="data-label">最高APM</span>
+                    <span class="data-val" id="maxApm">0</span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">当前APM</span>
+                    <span class="data-val" id="nowApm">0</span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">总正确操作</span>
+                    <span class="data-val" id="opCount">0</span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">剩余时间</span>
+                    <span class="data-val" id="timeLeft">30</span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">鼠标正确</span>
+                    <span class="data-val" id="mouseOk">0</span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">鼠标失误</span>
+                    <span class="data-val" id="mouseErr">0</span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">键盘正确</span>
+                    <span class="data-val" id="keyOk">0</span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">键盘失误</span>
+                    <span class="data-val" id="keyErr">0</span>
+                </div>
+
+                <div class="rank-box">
+                    <div>当前评级</div>
+                    <div class="rank-text" id="rankText">C</div>
+                    <div id="rankDesc">新手起步</div>
+                </div>
+
+                <div class="xp-area">
+                    <div>段位经验 <span id="xpNum">0</span>/100 XP</div>
+                    <div class="xp-bar-wrap">
+                        <div class="xp-bar" id="xpBar"></div>
+                    </div>
+                    <div style="font-size:13px;color:#aaa">当前段位：新手</div>
+                </div>
+
+                <div class="ach-title">成就列表</div>
+                <div class="ach-list" id="achList">
+                    • 初次试手 +10XP<br>
+                    • 手速入门(120APM) +10XP<br>
+                    • 五十操作 +10XP<br>
+                    • 坚持练习(5次测试) +10XP
+                </div>
+            </div>
+
+            <div class="test-area" id="testBox">
+                <div class="countdown-text hidden" id="timeShow">30</div>
+                <div class="start-tip" id="startWrap">
+                    <h2>限时键鼠交替手速挑战</h2>
+                    <p style="margin:10px 0;color:#aaa">红点仅鼠标、字母仅对应按键；跨类型操作扣生命值</p>
+                    <button class="start-btn" id="startBtn">开始测试</button>
+                </div>
+
+                <div class="result-mask hidden" id="resultMask">
+                    <div class="result-card">
+                        <div class="result-title">测试完成</div>
+                        <div style="color:#aaa;">你的峰值APM</div>
+                        <div class="result-apm-big" id="resApmVal">0</div>
+                        <div class="result-rank-tag" id="resRankTag">C · 新手起步</div>
+
+                        <div class="stat-grid">
+                            <div class="stat-item">
+                                <div class="stat-label">总正确操作</div>
+                                <div class="stat-value" id="resTotalOp">0</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">总失误次数</div>
+                                <div class="stat-value err" id="resTotalErr">0</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">鼠标正确</div>
+                                <div class="stat-value" id="resMouseOk">0</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">鼠标失误</div>
+                                <div class="stat-value err" id="resMouseErr">0</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">键盘正确</div>
+                                <div class="stat-value" id="resKeyOk">0</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">键盘失误</div>
+                                <div class="stat-value err" id="resKeyErr">0</div>
+                            </div>
+                        </div>
+
+                        <div class="xp-tip" id="resXpTip"></div>
+
+                        <div class="btn-group">
+                            <button class="result-btn btn-again" id="restartBtn">再来一次</button>
+                            <button class="result-btn btn-close" id="closeResultBtn">关闭</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="desc-footer">
+            APM(Actions Per Minute)：每分钟综合操作数，参考电竞职业标准 | SSS≥400 / S300-399 / A200-299 / B120-199 / C<120
+        </div>
+    </div>
+
+    <script>
+        const $ = s => document.querySelector(s);
+        const $$ = s => document.querySelectorAll(s);
+
+        let testRunning = false;
+        let timeTotal = 30;
+        let timeRemain = timeTotal;
+        let timer = null;
+        let maxAPM = 0;
+        let currentTarget = null;
+        const keyPool = ["Q","W","E","R","A","S","D","F"];
+        let xp = 0;
+        let testTimes = 0;
+
+        let mouseOk = 0, mouseErr = 0;
+        let keyOk = 0, keyErr = 0;
+        let lifeLeft = 3;
+
+        const testBox = $("#testBox");
+        const startWrap = $("#startWrap");
+        const startBtn = $("#startBtn");
+        const timeShow = $("#timeShow");
+        const nowApmDom = $("#nowApm");
+        const maxApmDom = $("#maxApm");
+        const opCountDom = $("#opCount");
+        const timeLeftDom = $("#timeLeft");
+        const rankTextDom = $("#rankText");
+        const rankDescDom = $("#rankDesc");
+        const xpNumDom = $("#xpNum");
+        const xpBarDom = $("#xpBar");
+        const timeSelect = $("#timeSelect");
+        const heartList = $$(".heart");
+
+        const mouseOkDom = $("#mouseOk");
+        const mouseErrDom = $("#mouseErr");
+        const keyOkDom = $("#keyOk");
+        const keyErrDom = $("#keyErr");
+
+        const resultMask = $("#resultMask");
+        const resApmVal = $("#resApmVal");
+        const resRankTag = $("#resRankTag");
+        const resTotalOp = $("#resTotalOp");
+        const resTotalErr = $("#resTotalErr");
+        const resMouseOk = $("#resMouseOk");
+        const resMouseErr = $("#resMouseErr");
+        const resKeyOk = $("#resKeyOk");
+        const resKeyErr = $("#resKeyErr");
+        const resXpTip = $("#resXpTip");
+        const restartBtn = $("#restartBtn");
+        const closeResultBtn = $("#closeResultBtn");
+
+        // 完整重置（红心+所有数据）
+        function fullReset() {
+            lifeLeft = 3;
+            heartList.forEach(h => h.classList.remove("gray"));
+            maxAPM = 0;
+            mouseOk = 0; mouseErr = 0;
+            keyOk = 0; keyErr = 0;
+            timeTotal = Number(timeSelect.value);
+            timeRemain = timeTotal;
+            clearTarget();
+            clearInterval(timer);
+            updateUI();
+            createNewTask();
+            testBox.focus();
+        }
+
+        function loseLife() {
+            lifeLeft--;
+            heartList[lifeLeft].classList.add("gray");
+            if (lifeLeft <= 0) endTest();
+        }
+
+        closeResultBtn.onclick = () => resultMask.classList.add("hidden");
+        restartBtn.onclick = () => {
+            resultMask.classList.add("hidden");
+            if (testRunning) return;
+            testRunning = true;
+            testTimes++;
+            startWrap.classList.add("hidden");
+            timeShow.classList.remove("hidden");
+            fullReset();
+        }
+        startBtn.onclick = () => {
+            if (testRunning) return;
+            testRunning = true;
+            testTimes++;
+            startWrap.classList.add("hidden");
+            timeShow.classList.remove("hidden");
+            fullReset();
+        }
+        testBox.addEventListener("click", () => testBox.focus());
+
+        // 鼠标点击逻辑
+        testBox.addEventListener("click", (e) => {
+            if (!testRunning || !currentTarget) return;
+            const tType = currentTarget.dataset.type;
+            if (tType === "key") {
+                mouseErr++;
+                updateUI();
+                loseLife();
+                return;
+            }
+            if (tType === "click" && e.target !== currentTarget) {
+                mouseErr++;
+                updateUI();
+                loseLife();
+            }
+        })
+
+        // 键盘事件：优先匹配正确按键
+        document.addEventListener("keydown", (e) => {
+            if (!testRunning || !currentTarget) return;
+            const tType = currentTarget.dataset.type;
+            const inputK = e.key.toUpperCase();
+            if (tType === "key") {
+                const needK = currentTarget.dataset.key;
+                if (inputK === needK) {
+                    keyOk++;
+                    updateUI();
+                    createNewTask();
+                    return;
+                } else {
+                    keyErr++;
+                    updateUI();
+                    loseLife();
+                    return;
+                }
+            }
+            if (tType === "click") {
+                keyErr++;
+                updateUI();
+                loseLife();
+            }
+        })
+
+        function createNewTask() {
+            if (!testRunning) return;
+            clearTarget();
+            const isClick = Math.random() > 0.45;
+            const w = testBox.clientWidth - 120;
+            const h = testBox.clientHeight - 120;
+            const x = Math.floor(Math.random() * w) + 30;
+            const y = Math.floor(Math.random() * h) + 60;
+            if (isClick) {
+                const dot = document.createElement("div");
+                dot.className = "target-dot";
+                dot.style.left = x + "px";
+                dot.style.top = y + "px";
+                dot.dataset.type = "click";
+                dot.onclick = (ev) => {
+                    ev.stopPropagation();
+                    mouseOk++;
+                    updateUI();
+                    createNewTask();
+                }
+                testBox.appendChild(dot);
+                currentTarget = dot;
+            } else {
+                const k = keyPool[Math.floor(Math.random() * keyPool.length)];
+                const box = document.createElement("div");
+                box.className = "key-hint";
+                box.style.left = x + "px";
+                box.style.top = y + "px";
+                box.dataset.type = "key";
+                box.dataset.key = k;
+                box.innerText = k;
+                testBox.appendChild(box);
+                currentTarget = box;
+            }
+        }
+
+        function clearTarget() {
+            if (currentTarget?.parentNode) currentTarget.remove();
+            currentTarget = null;
+        }
+
+        // 【核心修复】实时计算APM并同步更新峰值maxAPM
+        function updateUI() {
+            timeShow.innerText = timeRemain;
+            timeLeftDom.innerText = timeRemain;
+            const totalOp = mouseOk + keyOk;
+            opCountDom.innerText = totalOp;
+            const passed = timeTotal - timeRemain;
+            let realApm = passed > 0 ? Math.round(totalOp / passed * 60) : 0;
+            nowApmDom.innerText = realApm;
+            // 每次刷新都对比更新最高APM
+            if (realApm > maxAPM) {
+                maxAPM = realApm;
+                maxApmDom.innerText = maxAPM;
+            }
+            // 分项统计
+            mouseOkDom.innerText = mouseOk;
+            mouseErrDom.innerText = mouseErr;
+            keyOkDom.innerText = keyOk;
+            keyErrDom.innerText = keyErr;
+            setRank(realApm);
+        }
+
+        function setRank(apm) {
+            let rank, desc;
+            if (apm >= 400) { rank = "SSS"; desc = "操作之神"; }
+            else if (apm >= 300) { rank = "S"; desc = "手速达人"; }
+            else if (apm >= 200) { rank = "A"; desc = "进阶水平"; }
+            else if (apm >= 120) { rank = "B"; desc = "普通水平"; }
+            else { rank = "C"; desc = "新手起步"; }
+            rankTextDom.innerText = rank;
+            rankDescDom.innerText = desc;
+            return { rank, desc };
+        }
+
+        function endTest() {
+            clearInterval(timer);
+            testRunning = false;
+            clearTarget();
+            timeShow.classList.add("hidden");
+            startWrap.classList.remove("hidden");
+            let addXp = 0;
+            if (testTimes === 1) addXp += 10;
+            if (maxAPM >= 120) addXp += 10;
+            if ((mouseOk + keyOk) >= 50) addXp += 10;
+            if (testTimes >= 5) addXp += 10;
+            xp += addXp;
+            xpNumDom.innerText = xp;
+            xpBarDom.style.width = Math.min(xp / 100 * 100, 100) + "%";
+            const { rank, desc } = setRank(maxAPM);
+            const totalCorrect = mouseOk + keyOk;
+            const totalErr = mouseErr + keyErr;
+            // 弹窗填入正确峰值APM
+            resApmVal.innerText = maxAPM;
+            resRankTag.innerText = `${rank} · ${desc}`;
+            resTotalOp.innerText = totalCorrect;
+            resTotalErr.innerText = totalErr;
+            resMouseOk.innerText = mouseOk;
+            resMouseErr.innerText = mouseErr;
+            resKeyOk.innerText = keyOk;
+            resKeyErr.innerText = keyErr;
+            resXpTip.innerText = `本次获得${addXp}XP，总经验${xp}/100`;
+            resultMask.classList.remove("hidden");
+        }
+
+        // 倒计时启动
+        startBtn.addEventListener("click", () => {
+            timer = setInterval(() => {
+                timeRemain--;
+                updateUI();
+                if (timeRemain <= 0) endTest();
+            }, 1000);
+        })
+
+        // 页面初始化
+        fullReset();
+    </script>
+</body>
+</html>

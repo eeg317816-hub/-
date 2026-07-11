@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Player {
+  id          BigInt        @id @default(autoincrement())
+  phone       String        @unique @db.VarChar(20)
+  nickname    String        @unique @db.VarChar(50)
+  avatarKey   String?       @map("avatar_key") @db.VarChar(100)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @default(now()) @updatedAt @map("updated_at")
+  lastLoginAt DateTime?     @map("last_login_at")
+  sessions    GameSession[]
+
+  @@index([phone], map: "idx_players_phone")
+  @@map("players")
+}
+
+model Card {
+  id        BigInt        @id @default(autoincrement())
+  cardCode  String        @unique @map("card_code") @db.VarChar(100)
+  status    String        @default("active") @db.VarChar(20)
+  note      String?
+  createdAt DateTime      @default(now()) @map("created_at")
+  sessions  GameSession[]
+
+  @@index([cardCode], map: "idx_cards_card_code")
+  @@map("cards")
+}
+
+model GameSession {
+  id               BigInt    @id @default(autoincrement())
+  playerId         BigInt    @map("player_id")
+  cardId           BigInt?   @map("card_id")
+  mode             String    @default("apm_challenge") @db.VarChar(30)
+  durationSeconds  Int       @default(30) @map("duration_seconds")
+  score            Int       @default(0)
+  rankLevel        String    @default("C") @map("rank_level") @db.VarChar(10)
+  rankTitle        String    @default("?????") @map("rank_title") @db.VarChar(50)
+  apm              Int       @default(0)
+  maxApm           Int       @default(0) @map("max_apm")
+  accuracy         Decimal   @default(0) @db.Decimal(5, 2)
+  correctCount     Int       @default(0) @map("correct_count")
+  errorCount       Int       @default(0) @map("error_count")
+  mouseCorrect     Int       @default(0) @map("mouse_correct")
+  mouseError       Int       @default(0) @map("mouse_error")
+  keyboardCorrect  Int       @default(0) @map("keyboard_correct")
+  keyboardError    Int       @default(0) @map("keyboard_error")
+  maxCombo         Int       @default(0) @map("max_combo")
+  avgReactionMs    Int?      @map("avg_reaction_ms")
+  lifeLeft         Int       @default(0) @map("life_left")
+  isValid          Boolean   @default(true) @map("is_valid")
+  cheatFlag        Boolean   @default(false) @map("cheat_flag")
+  cheatReason      String?   @map("cheat_reason")
+  deviceCode       String?   @map("device_code") @db.VarChar(50)
+  ipAddress        String?   @map("ip_address") @db.VarChar(50)
+  userAgent        String?   @map("user_agent")
+  startedAt        DateTime? @map("started_at")
+  endedAt          DateTime? @map("ended_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  player           Player    @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  card             Card?     @relation(fields: [cardId], references: [id], onDelete: SetNull)
+
+  @@index([playerId], map: "idx_game_sessions_player_id")
+  @@index([createdAt], map: "idx_game_sessions_created_at")
+  @@index([score(sort: Desc)], map: "idx_game_sessions_score")
+  @@index([isValid, score(sort: Desc)], map: "idx_game_sessions_valid_score")
+  @@index([deviceCode], map: "idx_game_sessions_device_code")
+  @@map("game_sessions")
+}
+
+model GameConfig {
+  id          BigInt   @id @default(autoincrement())
+  configKey   String   @unique @map("config_key") @db.VarChar(100)
+  configValue String   @map("config_value")
+  description String?
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("game_config")
+}
+
+model AdminUser {
+  id           BigInt    @id @default(autoincrement())
+  username     String    @unique @db.VarChar(50)
+  passwordHash String    @map("password_hash") @db.VarChar(255)
+  role         String    @default("admin") @db.VarChar(30)
+  status       String    @default("active") @db.VarChar(20)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  lastLoginAt  DateTime? @map("last_login_at")
+
+  @@map("admin_users")
+}

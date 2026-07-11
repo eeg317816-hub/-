@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #07060c;
+  --bg-elevated: #121220;
+  --accent: #e31c23;
+  --accent-soft: #ff3344;
+  --gold: #ffd56a;
+  --text: #eee;
+  --muted: #999;
+  --border: #ff334440;
+  --glow: #ff334480;
+  --font-display: "ZCOOL KuaiLe", "Noto Sans SC", sans-serif;
+  --font-ui: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-tech: "Orbitron", "Noto Sans SC", sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-tech {
+  font-family: var(--font-tech);
+}
+
+.title-glow {
+  text-shadow:
+    0 0 12px rgba(255, 51, 68, 0.65),
+    0 0 28px rgba(201, 162, 39, 0.35),
+    0 2px 0 #4a0008;
+}
+
+.panel-glow {
+  border: 1px solid rgba(255, 51, 68, 0.45);
+  background: linear-gradient(180deg, rgba(28, 14, 22, 0.88), rgba(10, 8, 16, 0.92));
+  box-shadow:
+    0 0 0 1px rgba(255, 213, 106, 0.08) inset,
+    0 0 40px rgba(255, 51, 68, 0.22);
+  backdrop-filter: blur(8px);
+}
+
+.scanlines {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 3px
+  );
+  mix-blend-mode: multiply;
+  opacity: 0.35;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-8px);
+  }
+  40%,
+  80% {
+    transform: translateX(8px);
+  }
+}
+
+.shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+.btn-game {
+  background: linear-gradient(180deg, #ff4d5a, #c91828);
+  box-shadow: 0 0 18px rgba(255, 51, 68, 0.45);
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.btn-game:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.btn-game:disabled {
+  opacity: 0.6;
+  transform: none;
+}
