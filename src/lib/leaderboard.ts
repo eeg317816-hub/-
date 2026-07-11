@@ -34,6 +34,9 @@ async function validFilterSql() {
     : Prisma.empty;
 }
 
+/** 仅统计已结束对局，靿兝开局中的空戝绩进榜 */
+const completedFilter = Prisma.sql`AND gs.ended_at IS NOT NULL`;
+
 export async function getLeaderboardPage(params: {
   type: LeaderboardType;
   offset?: number;
@@ -85,6 +88,7 @@ export async function getLeaderboardPage(params: {
         WHERE 1=1
           ${validFilter}
           ${dateFilter}
+          ${completedFilter}
       ) t
       WHERE t.player_best_rank = 1
     ),
@@ -163,6 +167,7 @@ export async function getLeaderboardPage(params: {
           WHERE 1=1
             ${validFilter}
             ${dateFilter}
+            ${completedFilter}
         ) t
         WHERE t.player_best_rank = 1
       ),
@@ -220,6 +225,7 @@ export async function getLeaderboardPage(params: {
         WHERE 1=1
           ${validFilter}
           ${dateFilter}
+          ${completedFilter}
       ) t
       WHERE t.player_best_rank = 1
     ),
@@ -276,6 +282,7 @@ export async function getTodayRank(playerId: bigint) {
         FROM game_sessions gs
         WHERE gs.is_valid = TRUE
           AND gs.cheat_flag = FALSE
+          AND gs.ended_at IS NOT NULL
           AND (gs.created_at AT TIME ZONE 'UTC' AT TIME ZONE ${TZ})::date
               = (NOW() AT TIME ZONE ${TZ})::date
       ) x

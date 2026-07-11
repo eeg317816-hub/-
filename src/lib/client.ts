@@ -32,3 +32,17 @@ export function getSession() {
     deviceCode: getDeviceCode(),
   };
 }
+
+/** 退出登录：清会话，不产生新对局，不占用次数 */
+export function clearSession() {
+  localStorage.removeItem("qzgs_card_id");
+  localStorage.removeItem("qzgs_player_id");
+  localStorage.removeItem("qzgs_nickname");
+  localStorage.removeItem("qzgs_phone");
+  sessionStorage.removeItem("qzgs_quota");
+  sessionStorage.removeItem("qzgs_play");
+  sessionStorage.removeItem("qzgs_result_payload");
+  sessionStorage.removeItem("qzgs_card_token");
+  sessionStorage.removeItem("qzgs_player_token");
+  sessionStorage.removeItem("qzgs_player");
+}

@@ -153,7 +153,10 @@ export default function GamePage() {
         events: eventsRef.current,
       }),
     );
-    router.push("/result");
+    // 避免在 setState 更新链路中同步触发 Router 更新
+    window.setTimeout(() => {
+      router.push("/result");
+    }, 0);
   }, [play, router]);
 
   const fail = useCallback(
@@ -245,18 +248,17 @@ export default function GamePage() {
 
   useEffect(() => {
     if (!running || !play) return;
-    const timer = setInterval(() => {
-      setRemain((r) => {
-        if (r <= 1) {
-          clearInterval(timer);
-          finish();
-          return 0;
-        }
-        return r - 1;
-      });
+    const timer = window.setInterval(() => {
+      setRemain((r) => Math.max(r - 1, 0));
     }, 1000);
-    return () => clearInterval(timer);
-  }, [running, play, finish]);
+    return () => window.clearInterval(timer);
+  }, [running, play]);
+
+  useEffect(() => {
+    if (!running) return;
+    if (remain !== 0) return;
+    finish();
+  }, [running, remain, finish]);
 
   useEffect(() => {
     if (!running) return;

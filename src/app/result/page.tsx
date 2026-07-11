@@ -34,7 +34,7 @@ export default function ResultPage() {
   useEffect(() => {
     const payloadRaw = sessionStorage.getItem("qzgs_result_payload");
     if (!payloadRaw) {
-      router.replace("/");
+      window.setTimeout(() => router.replace("/"), 0);
       return;
     }
     let cancelled = false;
@@ -90,19 +90,22 @@ export default function ResultPage() {
 
   useEffect(() => {
     if (phase !== "done") return;
-    const timer = setInterval(() => {
+    setCountdown(10);
+    const timer = window.setInterval(() => {
       if (pausedRef.current) return;
-      setCountdown((c) => {
-        if (c <= 1) {
-          clearInterval(timer);
-          router.replace("/");
-          return 0;
-        }
-        return c - 1;
-      });
+      setCountdown((c) => Math.max(c - 1, 0));
     }, 1000);
-    return () => clearInterval(timer);
-  }, [phase, router]);
+    return () => window.clearInterval(timer);
+  }, [phase]);
+
+  useEffect(() => {
+    if (phase !== "done") return;
+    if (countdown !== 0) return;
+    if (pausedRef.current) return;
+    window.setTimeout(() => {
+      router.replace("/");
+    }, 0);
+  }, [phase, countdown, router]);
 
   async function continuePlay() {
     pausedRef.current = true;

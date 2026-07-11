@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { getSession } from "@/lib/client";
+import { clearSession, getSession } from "@/lib/client";
 import { GameShell } from "@/components/GameShell";
 import { playSfx } from "@/lib/sfx";
 
@@ -21,7 +21,7 @@ export default function ModesPage() {
   useEffect(() => {
     const s = getSession();
     if (!s.playerId || !s.cardId) {
-      router.replace("/");
+      window.setTimeout(() => router.replace("/"), 0);
       return;
     }
     setNickname(s.nickname);
@@ -56,6 +56,12 @@ export default function ModesPage() {
     }
   }
 
+  function logout() {
+    clearSession();
+    playSfx("whoosh", 0.25);
+    router.replace("/");
+  }
+
   const remain =
     quota != null
       ? Math.max(0, quota.dailyPlayLimit - quota.todayPlayCount)
@@ -64,13 +70,22 @@ export default function ModesPage() {
   return (
     <GameShell scene="arena">
       <div className="mx-auto min-h-screen max-w-xl px-6 py-10">
-        <motion.h1
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="font-display title-glow mb-2 text-4xl tracking-wider text-[#ffe9a8]"
-        >
-          准备挑战
-        </motion.h1>
+        <div className="mb-2 flex items-start justify-between gap-3">
+          <motion.h1
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="font-display title-glow text-4xl tracking-wider text-[#ffe9a8]"
+          >
+            准备挑战
+          </motion.h1>
+          <button
+            type="button"
+            onClick={logout}
+            className="rounded-lg border border-[#666] bg-black/30 px-4 py-2 text-sm text-[#ddd] hover:border-[#ff3344] hover:text-white"
+          >
+            退出游戏
+          </button>
+        </div>
         <p className="mb-6 text-[#c8c8c8]">
           选手：{nickname || "-"}
           {quota && (
@@ -110,6 +125,10 @@ export default function ModesPage() {
         >
           {loading ? "准备中…" : "开始挑战"}
         </button>
+
+        <p className="mt-4 text-center text-xs text-[#777]">
+          退出游戏会返回刷卡首页，不会额外计入挑战次数
+        </p>
       </div>
     </GameShell>
   );

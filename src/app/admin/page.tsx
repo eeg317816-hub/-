@@ -16,6 +16,18 @@ type SessionRow = {
   createdAt: string;
 };
 
+async function readJson(res: Response) {
+  const text = await res.text();
+  if (!text) {
+    throw new Error(`接口返回为空，HTTP ${res.status}`);
+  }
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`接口返回不是合法 JSON（HTTP ${res.status}）：${text.slice(0, 120)}`);
+  }
+}
+
 export default function AdminPage() {
   const [authed, setAuthed] = useState(false);
   const [username, setUsername] = useState("admin");
@@ -29,18 +41,22 @@ export default function AdminPage() {
 
   async function login(e: React.FormEvent) {
     e.preventDefault();
-    const res = await fetch("/api/admin/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-    });
-    const json = await res.json();
-    if (!json.success) {
-      setMsg(json.error);
-      return;
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+      const json = await readJson(res);
+      if (!json.success) {
+        setMsg(json.error || "登录失败");
+        return;
+      }
+      setAuthed(true);
+      setMsg("");
+    } catch (err) {
+      setMsg(err instanceof Error ? err.message : "登录失败");
     }
-    setAuthed(true);
-    setMsg("");
   }
 
   async function loadSessions() {
@@ -48,14 +64,21 @@ export default function AdminPage() {
     if (phone.trim()) params.set("phone", phone.trim());
     if (from) params.set("from", from);
     if (to) params.set("to", to);
-    const s = await fetch(`/api/admin/sessions?${params}`).then((r) => r.json());
+    const res = await fetch(`/api/admin/sessions?${params}`);
+    const s = await readJson(res);
     if (s.success) setSessions(s.sessions || []);
   }
 
   async function load() {
-    const c = await fetch("/api/admin/config").then((r) => r.json());
-    if (c.success) setMap(c.map || {});
-    await loadSessions();
+    try {
+      const res = await fetch("/api/admin/config");
+      const c = await readJson(res);
+      if (c.success) setMap(c.map || {});
+      else setMsg(c.error || "读取配置失败");
+      await loadSessions();
+    } catch (err) {
+      setMsg(err instanceof Error ? err.message : "加载失败");
+    }
   }
 
   useEffect(() => {
@@ -63,30 +86,47 @@ export default function AdminPage() {
   }, [authed]);
 
   async function saveConfig() {
-    const res = await fetch("/api/admin/config", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(map),
-    });
-    const json = await res.json();
-    setMsg(json.success ? "配置已保存" : json.error);
+    try {
+      const res = await fetch("/api/admin/config", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(map),
+      });
+      const json = await readJson(res);
+      if (json.success) {
+        if (json.map) setMap(json.map);
+        setMsg("配置已保存");
+      } else {
+        setMsg(json.error || "保存失败");
+      }
+    } catch (err) {
+      setMsg(err instanceof Error ? err.message : "保存配置失败");
+    }
   }
 
   async function clearBoard(type: "today" | "all") {
-    const res = await fetch("/api/admin/leaderboard/clear", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type }),
-    });
-    const json = await res.json();
-    setMsg(json.success ? `已作废 ${json.invalidated} 条成绩` : json.error);
+    try {
+      const res = await fetch("/api/admin/leaderboard/clear", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type }),
+      });
+      const json = await readJson(res);
+      setMsg(json.success ? `已作废 ${json.invalidated} 条成绩` : json.error || "清榜失败");
+    } catch (err) {
+      setMsg(err instanceof Error ? err.message : "清榜失败");
+    }
   }
 
   async function removeSession(id: number) {
-    const res = await fetch(`/api/admin/sessions?id=${id}`, { method: "DELETE" });
-    const json = await res.json();
-    setMsg(json.success ? "已删除" : json.error);
-    void loadSessions();
+    try {
+      const res = await fetch(`/api/admin/sessions?id=${id}`, { method: "DELETE" });
+      const json = await readJson(res);
+      setMsg(json.success ? "已删除" : json.error || "删除失败");
+      void loadSessions();
+    } catch (err) {
+      setMsg(err instanceof Error ? err.message : "删除失败");
+    }
   }
 
   if (!authed) {

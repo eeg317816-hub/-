@@ -1,54 +1,39 @@
 # 回滚说明
 
-本仓库已用 Git 建立检查点，可随时回到「替换更清晰过场动画之前」的完整工程。
+## 检查点一览
 
-## 当前检查点
-
-| 名称 | 含义 |
+| 标签 | 含义 |
 |------|------|
-| 标签 `checkpoint-before-clear-transition` | 替换清晰过场动画前的完整代码与资源 |
-| 分支提交（该标签指向的 commit） | 同上 |
+| `checkpoint-before-clear-transition` | 替换更清晰过场动画之前 |
+| `checkpoint-after-bugfix-20260712` | **当前推荐**：修复 Router setState、后台配置、大屏仅结算后刷新、退出游戏之后 |
 
-## 如何回滚到该检查点
-
-在项目根目录执行：
+## 回滚到本次修复后的版本（最新稳定点）
 
 ```bash
-# 查看标签
-git tag -l
+git switch --detach checkpoint-after-bugfix-20260712
+# 或拉分支继续开发：
+git switch -c from-bugfix checkpoint-after-bugfix-20260712
+```
 
-# 方式 A：临时查看/运行该版本（不改当前分支）
+## 回滚到更早的过场替换前基线
+
+```bash
 git switch --detach checkpoint-before-clear-transition
-
-# 方式 B：把当前分支硬回退到检查点（会丢弃之后未提交改动，慎用）
-git switch main 2>/dev/null || git switch master 2>/dev/null || true
-git reset --hard checkpoint-before-clear-transition
-
-# 方式 C：新建分支从检查点继续改
-git switch -c restore-from-checkpoint checkpoint-before-clear-transition
 ```
 
-回到最新代码：
+## 回到最新 main
 
 ```bash
-git switch master   # 或 main，以 git branch 为准
+git switch main
 ```
 
-## 仅回滚过场视频（不回滚代码）
-
-旧视频已备份在：
-
-- `public/media/archive/card-transition-2026-07-12-prev.mp4`
-- `public/media/archive/card-transition-web-2026-07-12-prev.mp4`
-
-复制覆盖即可：
+## 仅恢复旧过场视频
 
 ```bash
 cp public/media/archive/card-transition-2026-07-12-prev.mp4 public/media/card-transition.mp4
-cp public/media/archive/card-transition-web-2026-07-12-prev.mp4 public/media/card-transition-web.mp4
 ```
 
 ## 备注
 
-- `.env` 未入库；回滚后如需本地库连接，请保留或恢复自己的 `.env`
-- `node_modules` 未入库；回滚后执行 `npm install`
+- `.env` 未入库
+- 回滚后执行 `npm install`
