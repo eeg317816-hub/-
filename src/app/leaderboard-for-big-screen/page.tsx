@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GameShell } from "@/components/GameShell";
+import { setTerminalState } from "@/lib/terminal-state";
+import { apiUrl } from "@/lib/public-env";
 import { BoardHeader, BoardRowView } from "@/components/LeaderboardRow";
 import { displayNickname } from "@/lib/nickname";
 
@@ -24,6 +26,8 @@ const PAGE = 20;
 const POLL_MS = 2500;
 
 export default function BigScreenLeaderboardPage() {
+  useEffect(() => { setTerminalState("RANKING"); }, []);
+
   const [list, setList] = useState<Row[]>([]);
   const [total, setTotal] = useState(0);
   const [offset, setOffset] = useState(0);
@@ -49,9 +53,7 @@ export default function BigScreenLeaderboardPage() {
     loadingRef.current = true;
     setLoading(true);
     try {
-      const res = await fetch(
-        `/api/leaderboard?type=all&offset=${nextOffset}&limit=${PAGE}`,
-      );
+      const res = await fetch(apiUrl(`/api/leaderboard?type=all&offset=${nextOffset}&limit=${PAGE}`));
       const json = await res.json();
       if (!json.success) return;
       const rows: Row[] = json.list || [];
@@ -74,9 +76,7 @@ export default function BigScreenLeaderboardPage() {
     const timer = setInterval(async () => {
       try {
         const loaded = Math.max(listRef.current.length, PAGE);
-        const res = await fetch(
-          `/api/leaderboard?type=all&offset=0&limit=${loaded}`,
-        );
+        const res = await fetch(apiUrl(`/api/leaderboard?type=all&offset=0&limit=${loaded}`));
         const json = await res.json();
         if (!json.success) return;
         if (json.version && json.version !== versionRef.current) {
@@ -131,14 +131,14 @@ export default function BigScreenLeaderboardPage() {
   const rest = list.filter((r) => r.rank > 3);
 
   return (
-    <GameShell scene="arena" className="!min-h-screen">
+    <GameShell scene="hud" className="!min-h-screen">
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-8 md:px-10">
         <header className="mb-8 flex items-end justify-between gap-4">
           <div>
             <p className="font-tech text-sm tracking-[0.35em] text-[#ffd56a]">
               THE KING&apos;S AVATAR · LIVE RANKING
             </p>
-            <h1 className="font-display title-glow mt-2 text-5xl tracking-[0.12em] text-[#ffe9a8] md:text-7xl">
+            <h1 className="font-display title-glow mt-2 text-5xl tracking-[0.12em] text-[#ff3b45] md:text-7xl">
               总排行榜
             </h1>
           </div>
@@ -178,7 +178,7 @@ export default function BigScreenLeaderboardPage() {
                     >
                       {displayNickname(row.nickname, 10)}
                     </div>
-                    <div className="mt-2 text-4xl font-black tabular-nums text-[#ffe9a8] md:text-5xl">
+                    <div className="mt-2 text-4xl font-black tabular-nums text-[#ff3b45] md:text-5xl">
                       {row.score}
                     </div>
                     <div className="mt-2 truncate text-sm text-[#bbb]">

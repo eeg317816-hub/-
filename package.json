@@ -3,15 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -H 0.0.0.0 -p 3000",
     "build": "next build",
-    "start": "next start",
+    "build:test": "APP_ENV=test NEXT_PUBLIC_APP_ENV=test next build",
+    "build:prod": "APP_ENV=production NEXT_PUBLIC_APP_ENV=production next build",
+    "start": "next start -H 0.0.0.0 -p 3000",
     "lint": "next lint",
+    "test": "tsx scripts/smoke-test.ts",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
-    "postinstall": "prisma generate"
+    "db:studio": "prisma studio",
+    "postinstall": "prisma generate",
+    "health": "curl -sf http://127.0.0.1:3000/api/health"
   },
   "dependencies": {
     "@prisma/client": "^6.5.0",

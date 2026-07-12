@@ -63,7 +63,7 @@ export function BoardRowView({
         >
           {displayNickname(row.nickname, 10)}
           {highlight && (
-            <span className="ml-1 text-xs text-[#ffd56a]">我</span>
+            <span className="ml-1 text-xs text-[#ff6b73]">我</span>
           )}
         </div>
         {showPhone && row.phoneMasked && (
@@ -71,7 +71,7 @@ export function BoardRowView({
         )}
       </div>
       <div className="min-w-0 overflow-hidden">
-        <div className="truncate text-sm text-[#ffd56a]">{row.rankLevel}</div>
+        <div className="truncate text-sm text-[#ff6b73]">{row.rankLevel}</div>
         <div className="truncate text-xs text-[#888]">{row.rankTitle}</div>
       </div>
       <div className="min-w-0 overflow-hidden text-sm text-[#ccc]">
@@ -80,7 +80,7 @@ export function BoardRowView({
           连击 {row.maxCombo}
         </div>
       </div>
-      <div className="text-right text-xl font-bold tabular-nums text-[#ffe9a8]">
+      <div className="text-right text-xl font-bold tabular-nums text-[#ff3b45]">
         {row.score}
       </div>
     </div>

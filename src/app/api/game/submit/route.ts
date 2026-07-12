@@ -68,6 +68,7 @@ export async function POST(req: Request) {
   const updated = await prisma.gameSession.update({
     where: { id: session.id },
     data: {
+      status: "ENDED",
       score: metrics.score,
       rankLevel: metrics.rankLevel,
       rankTitle: metrics.rankTitle,
@@ -92,6 +93,26 @@ export async function POST(req: Request) {
 
   const todayRank = isValid ? await getTodayRank(updated.playerId) : null;
   const bestScore = await getPlayerBestScore(updated.playerId);
+
+  
+  if (session.terminalSessionId) {
+    await prisma.terminalSession.updateMany({
+      where: { id: session.terminalSessionId },
+      data: {
+        status: "RESULT",
+        lastHeartbeat: new Date(),
+        updatedAt: new Date(),
+      },
+    });
+  } else if (session.deviceCode) {
+    await prisma.terminalSession.updateMany({
+      where: {
+        terminalCode: session.deviceCode,
+        status: "PLAYING",
+      },
+      data: { status: "RESULT", lastHeartbeat: new Date(), updatedAt: new Date() },
+    });
+  }
 
   return ok({
     score: updated.score,

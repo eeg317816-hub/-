@@ -1,7 +1,13 @@
 import { SignJWT, jwtVerify } from "jose";
 
-const secret = () =>
-  new TextEncoder().encode(process.env.ADMIN_JWT_SECRET || "dev-secret");
+function secret() {
+  const raw = process.env.ADMIN_JWT_SECRET;
+  if (!raw) {
+    console.error("[auth] 缺少 ADMIN_JWT_SECRET");
+    throw new Error("Missing ADMIN_JWT_SECRET");
+  }
+  return new TextEncoder().encode(raw);
+}
 
 export type AdminSessionPayload = {
   typ: "admin";

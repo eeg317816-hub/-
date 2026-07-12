@@ -12,12 +12,17 @@ const configs: Array<{ key: string; value: string; description: string }> = [
 ];
 
 async function main() {
-  const passwordHash = await bcrypt.hash("admin123", 10);
+  const username = process.env.ADMIN_SEED_USERNAME || "admin";
+  const password = process.env.ADMIN_SEED_PASSWORD;
+  if (!password) {
+    throw new Error("请设置环境变量 ADMIN_SEED_PASSWORD 后再执行 seed");
+  }
+  const passwordHash = await bcrypt.hash(password, 10);
   await prisma.adminUser.upsert({
-    where: { username: "admin" },
+    where: { username },
     update: { passwordHash, status: "active", role: "super_admin" },
     create: {
-      username: "admin",
+      username,
       passwordHash,
       role: "super_admin",
       status: "active",
@@ -26,7 +31,7 @@ async function main() {
 
   await prisma.card.upsert({
     where: { cardCode: "DEV-CARD-001" },
-    update: { status: "active", note: "开发测试卡" },
+    update: { status: "active", note: "开发测试卡（仅手工调试入口用）" },
     create: { cardCode: "DEV-CARD-001", status: "active", note: "开发测试卡" },
   });
 
@@ -42,7 +47,7 @@ async function main() {
     });
   }
 
-  console.log("Seed OK: admin/admin123, card DEV-CARD-001, game_config");
+  console.log(`Seed OK: admin user=${username}, card DEV-CARD-001, game_config`);
 }
 
 main()

@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #07060c;
-  --bg-elevated: #121220;
+  --bg: #050508;
+  --bg-elevated: #0c0c12;
   --accent: #e31c23;
-  --accent-soft: #ff3344;
+  --accent-soft: #ff2a36;
   --gold: #ffd56a;
-  --text: #eee;
-  --muted: #999;
-  --border: #ff334440;
-  --glow: #ff334480;
+  --text: #f2f2f2;
+  --muted: #8a8a8a;
+  --border: rgba(227, 28, 35, 0.55);
+  --glow: rgba(227, 28, 35, 0.55);
   --font-display: "ZCOOL KuaiLe", "Noto Sans SC", sans-serif;
   --font-ui: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
   --font-tech: "Orbitron", "Noto Sans SC", sans-serif;
@@ -41,17 +41,17 @@ body {
 
 .title-glow {
   text-shadow:
-    0 0 12px rgba(255, 51, 68, 0.65),
-    0 0 28px rgba(201, 162, 39, 0.35),
-    0 2px 0 #4a0008;
+    0 0 10px rgba(255, 42, 54, 0.85),
+    0 0 28px rgba(227, 28, 35, 0.55),
+    0 0 48px rgba(227, 28, 35, 0.25);
 }
 
 .panel-glow {
-  border: 1px solid rgba(255, 51, 68, 0.45);
-  background: linear-gradient(180deg, rgba(28, 14, 22, 0.88), rgba(10, 8, 16, 0.92));
+  border: 1px solid rgba(227, 28, 35, 0.55);
+  background: linear-gradient(180deg, rgba(18, 8, 12, 0.88), rgba(6, 4, 10, 0.94));
   box-shadow:
-    0 0 0 1px rgba(255, 213, 106, 0.08) inset,
-    0 0 40px rgba(255, 51, 68, 0.22);
+    0 0 0 1px rgba(227, 28, 35, 0.12) inset,
+    0 0 36px rgba(227, 28, 35, 0.22);
   backdrop-filter: blur(8px);
 }
 
@@ -60,10 +60,10 @@ body {
     0deg,
     transparent,
     transparent 2px,
-    rgba(0, 0, 0, 0.08) 3px
+    rgba(0, 0, 0, 0.1) 3px
   );
   mix-blend-mode: multiply;
-  opacity: 0.35;
+  opacity: 0.4;
 }
 
 @keyframes shake {
@@ -86,9 +86,10 @@ body {
 }
 
 .btn-game {
-  background: linear-gradient(180deg, #ff4d5a, #c91828);
-  box-shadow: 0 0 18px rgba(255, 51, 68, 0.45);
+  background: linear-gradient(180deg, #ff3b45, #c4101c);
+  box-shadow: 0 0 18px rgba(227, 28, 35, 0.55);
   transition: transform 0.15s ease, filter 0.15s ease;
+  color: #fff;
 }
 
 .btn-game:hover {
@@ -99,4 +100,105 @@ body {
 .btn-game:disabled {
   opacity: 0.6;
   transform: none;
+}
+
+/* HUD frames */
+.hud-frame {
+  position: relative;
+  border: 1px solid rgba(227, 28, 35, 0.7);
+  background: rgba(0, 0, 0, 0.45);
+  box-shadow:
+    0 0 18px rgba(227, 28, 35, 0.35),
+    inset 0 0 24px rgba(227, 28, 35, 0.08);
+}
+
+.hud-frame::before,
+.hud-frame::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: #e31c23;
+  border-style: solid;
+  pointer-events: none;
+}
+
+.hud-frame::before {
+  top: -1px;
+  left: -1px;
+  border-width: 2px 0 0 2px;
+}
+
+.hud-frame::after {
+  right: -1px;
+  bottom: -1px;
+  border-width: 0 2px 2px 0;
+}
+
+.hud-input {
+  width: 100%;
+  border: 1px solid rgba(227, 28, 35, 0.65);
+  background: rgba(0, 0, 0, 0.55);
+  color: #f5f5f5;
+  padding: 0.75rem 1rem;
+  outline: none;
+  box-shadow: 0 0 12px rgba(227, 28, 35, 0.2);
+}
+
+.hud-input:focus {
+  border-color: #ff2a36;
+  box-shadow: 0 0 18px rgba(227, 28, 35, 0.45);
+}
+
+.hud-input::placeholder {
+  color: #777;
+}
+
+.hud-pulse {
+  animation: hudPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes hudPulse {
+  0%,
+  100% {
+    opacity: 0.75;
+    filter: drop-shadow(0 0 8px rgba(227, 28, 35, 0.45));
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 18px rgba(227, 28, 35, 0.85));
+  }
+}
+
+.hud-scan-line {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(227, 28, 35, 0.08) 50%,
+    transparent 100%
+  );
+  background-size: 100% 220%;
+  animation: hudScan 4.5s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes hudScan {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 0% 100%;
+  }
+}
+
+.hud-link {
+  color: #e8e8e8;
+  text-shadow: 0 0 10px rgba(227, 28, 35, 0.65);
+  letter-spacing: 0.12em;
+}
+
+.hud-link:hover {
+  color: #ff4d57;
 }

@@ -7,6 +7,7 @@ import { getSession } from "@/lib/client";
 import { GameShell } from "@/components/GameShell";
 import { ScoreFloatLayer, type FloatItem } from "@/components/ScoreFloat";
 import { playSfx } from "@/lib/sfx";
+import { setTerminalState } from "@/lib/terminal-state";
 
 const KEY_POOL = ["Q", "W", "E", "R", "A", "S", "D", "F"];
 const BASE_HIT = 10;
@@ -77,6 +78,7 @@ export default function GamePage() {
   }, []);
 
   useEffect(() => {
+    setTerminalState("PLAYING");
     const raw = sessionStorage.getItem("qzgs_play");
     const s = getSession();
     if (!raw || !s.playerId) {
@@ -155,6 +157,7 @@ export default function GamePage() {
     );
     // 避免在 setState 更新链路中同步触发 Router 更新
     window.setTimeout(() => {
+      setTerminalState("SUBMITTING");
       router.push("/result");
     }, 0);
   }, [play, router]);
@@ -322,7 +325,7 @@ export default function GamePage() {
 
   if (!play) {
     return (
-      <GameShell>
+      <GameShell scene="hud">
         <div className="flex min-h-screen items-center justify-center text-[#aaa]">
           加载中…
         </div>
@@ -331,11 +334,11 @@ export default function GamePage() {
   }
 
   return (
-    <GameShell scene="arena">
+    <GameShell scene="hud">
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-4 md:px-6">
-        <header className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-[#ff334450] pb-3">
+        <header className="hud-frame mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-[#ff334450] pb-3">
           <div>
-            <h1 className="font-display title-glow text-2xl tracking-wider text-[#ffe9a8] md:text-3xl">
+            <h1 className="font-display title-glow text-2xl tracking-wider text-[#ff3b45] md:text-3xl">
               全职高手 · 手速挑战
             </h1>
             <p className="text-sm text-[#aaa]">
@@ -346,27 +349,27 @@ export default function GamePage() {
           <div className="flex gap-2 text-2xl">
             {Array.from({ length: play.lifeCount }).map((_, i) => (
               <span key={i} className={i < life ? "text-[#ff3344]" : "text-[#444]"}>
-                ❤
+                ♥
               </span>
             ))}
           </div>
         </header>
 
         <div className="grid flex-1 gap-4 md:grid-cols-[240px_1fr]">
-          <aside className="panel-glow space-y-3 rounded-xl p-4">
+          <aside className="panel-glow hud-frame space-y-3 rounded-xl p-4">
             <Stat label="实时 APM" value={apm} />
             <Stat label="峰值 APM" value={maxApm} />
             <Stat label="Combo" value={combo} highlight />
             <Stat label="最大连击" value={maxCombo} />
             <Stat label="正确率" value={`${Math.round(accuracy * 100)}%`} />
-            <Stat label="正确 / 失误" value={`${correct} / ${errors}`} />
+            <Stat label="正确 / 错误" value={`${correct} / ${errors}`} />
             <Stat label="剩余时间" value={remain} />
           </aside>
 
           <div
             ref={boxRef}
             tabIndex={0}
-            className="panel-glow relative min-h-[420px] overflow-hidden rounded-xl outline-none"
+            className="panel-glow hud-frame relative min-h-[420px] overflow-hidden rounded-xl outline-none"
             onClick={(e) => {
               if (!running || !target) return;
               const rect = boxRef.current?.getBoundingClientRect();
@@ -386,7 +389,7 @@ export default function GamePage() {
 
             {!running && (
               <div className="absolute inset-0 z-10 flex flex-col items-center justify-center">
-                <h2 className="font-display mb-2 text-3xl text-[#ffe9a8]">键鼠交替手速挑战</h2>
+                <h2 className="font-display mb-2 text-3xl text-[#ff3b45]">键鼠交替手速挑战</h2>
                 <p className="mb-6 text-[#aaa]">红点点鼠标，字母按对应键；跨类型扣血</p>
                 {play.message && <p className="mb-4 text-[#ffaa66]">{play.message}</p>}
                 <button type="button" onClick={startGame} className="btn-game rounded-lg px-10 py-3 text-lg font-semibold">

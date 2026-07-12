@@ -8,14 +8,15 @@ datasource db {
 }
 
 model Player {
-  id          BigInt        @id @default(autoincrement())
-  phone       String        @unique @db.VarChar(20)
-  nickname    String        @unique @db.VarChar(10)
-  avatarKey   String?       @map("avatar_key") @db.VarChar(100)
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @default(now()) @updatedAt @map("updated_at")
-  lastLoginAt DateTime?     @map("last_login_at")
-  sessions    GameSession[]
+  id               BigInt            @id @default(autoincrement())
+  phone            String            @unique @db.VarChar(20)
+  nickname         String            @unique @db.VarChar(10)
+  avatarKey        String?           @map("avatar_key") @db.VarChar(100)
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @default(now()) @updatedAt @map("updated_at")
+  lastLoginAt      DateTime?         @map("last_login_at")
+  sessions         GameSession[]
+  terminalSessions TerminalSession[]
 
   @@index([phone], map: "idx_players_phone")
   @@map("players")
@@ -33,15 +34,40 @@ model Card {
   @@map("cards")
 }
 
+/// 游戏终端会话（占位 / 心跳 / 强制释放）
+model TerminalSession {
+  id            BigInt    @id @default(autoincrement())
+  terminalCode  String    @map("terminal_code") @db.VarChar(50)
+  /// CREATED | LOGIN | READY | PLAYING | SUBMITTING | RESULT | RANKING | EXPIRED | ABORTED
+  status        String    @default("CREATED") @db.VarChar(20)
+  playerId      BigInt?   @map("player_id")
+  nickname      String?   @db.VarChar(10)
+  gameSessionId BigInt?   @map("game_session_id")
+  startedAt     DateTime  @default(now()) @map("started_at")
+  lastHeartbeat DateTime  @default(now()) @map("last_heartbeat")
+  expiresAt     DateTime  @map("expires_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at")
+  player        Player?   @relation(fields: [playerId], references: [id], onDelete: SetNull)
+
+  @@index([terminalCode], map: "idx_terminal_sessions_code")
+  @@index([status], map: "idx_terminal_sessions_status")
+  @@index([expiresAt], map: "idx_terminal_sessions_expires")
+  @@map("terminal_sessions")
+}
+
 model GameSession {
   id               BigInt    @id @default(autoincrement())
   playerId         BigInt    @map("player_id")
   cardId           BigInt?   @map("card_id")
+  terminalSessionId BigInt?  @map("terminal_session_id")
   mode             String    @default("apm_challenge") @db.VarChar(30)
+  /// CREATED | PLAYING | ENDED | ABORTED | EXPIRED
+  status           String    @default("CREATED") @db.VarChar(20)
   durationSeconds  Int       @default(30) @map("duration_seconds")
   score            Int       @default(0)
   rankLevel        String    @default("C") @map("rank_level") @db.VarChar(10)
-  rankTitle        String    @default("?????") @map("rank_title") @db.VarChar(50)
+  rankTitle        String    @default("新人训练生") @map("rank_title") @db.VarChar(50)
   apm              Int       @default(0)
   maxApm           Int       @default(0) @map("max_apm")
   accuracy         Decimal   @default(0) @db.Decimal(5, 2)
@@ -71,6 +97,7 @@ model GameSession {
   @@index([score(sort: Desc)], map: "idx_game_sessions_score")
   @@index([isValid, score(sort: Desc)], map: "idx_game_sessions_valid_score")
   @@index([deviceCode], map: "idx_game_sessions_device_code")
+  @@index([status], map: "idx_game_sessions_status")
   @@map("game_sessions")
 }
 

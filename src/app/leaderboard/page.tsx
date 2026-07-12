@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSession } from "@/lib/client";
 import { GameShell } from "@/components/GameShell";
+import { setTerminalState } from "@/lib/terminal-state";
+import { apiUrl } from "@/lib/public-env";
 import { BoardHeader, BoardRowView } from "@/components/LeaderboardRow";
 
 type Row = {
@@ -23,6 +25,8 @@ type Row = {
 const PAGE = 10;
 
 export default function LeaderboardPage() {
+  useEffect(() => { setTerminalState("RANKING"); }, []);
+
   const router = useRouter();
   const [type, setType] = useState<"today" | "all">("all");
   const [list, setList] = useState<Row[]>([]);
@@ -50,7 +54,7 @@ export default function LeaderboardPage() {
         limit: String(PAGE),
       });
       if (nickname) q.set("nickname", nickname);
-      const res = await fetch(`/api/leaderboard?${q}`);
+      const res = await fetch(apiUrl(`/api/leaderboard?${q}`));
       return res.json();
     },
     [type, nickname],
@@ -157,10 +161,10 @@ export default function LeaderboardPage() {
   }, [loadDown, loadUp, list.length]);
 
   return (
-    <GameShell scene="stage">
+    <GameShell scene="hud">
       <div className="mx-auto flex h-screen max-w-3xl flex-col px-4 py-6">
         <div className="mb-4 flex items-center justify-between">
-          <h1 className="font-display title-glow text-4xl tracking-wider text-[#ffe9a8]">
+          <h1 className="font-display title-glow text-4xl tracking-wider text-[#ff3b45]">
             荣耀排行榜
           </h1>
           <button

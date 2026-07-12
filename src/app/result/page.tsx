@@ -3,9 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { getSession } from "@/lib/client";
+import { clearSession, getSession } from "@/lib/client";
 import { GameShell } from "@/components/GameShell";
 import { playSfx } from "@/lib/sfx";
+import { apiUrl } from "@/lib/public-env";
+import { useHeartbeat } from "@/hooks/useHeartbeat";
+import { getTerminalSessionId, setTerminalState } from "@/lib/terminal-state";
 
 type ResultView = {
   score: number;
@@ -31,9 +34,13 @@ export default function ResultPage() {
   const [remainRuns, setRemainRuns] = useState<number | null>(null);
   const pausedRef = useRef(false);
 
+  useHeartbeat(true);
+
   useEffect(() => {
+    setTerminalState("SUBMITTING");
     const payloadRaw = sessionStorage.getItem("qzgs_result_payload");
     if (!payloadRaw) {
+      setTerminalState("WAITING_CARD");
       window.setTimeout(() => router.replace("/"), 0);
       return;
     }
@@ -41,7 +48,7 @@ export default function ResultPage() {
     (async () => {
       try {
         const payload = JSON.parse(payloadRaw);
-        const res = await fetch("/api/game/submit", {
+        const res = await fetch(apiUrl("/api/game/submit"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -51,11 +58,13 @@ export default function ResultPage() {
         if (cancelled) return;
         setResult(json);
         setPhase("done");
+        setTerminalState("RESULT");
         playSfx("combo", 0.45);
 
         // refresh quota
         const s = getSession();
-        const reg = await fetch("/api/player/register", {
+        const terminalSessionId = getTerminalSessionId();
+        const reg = await fetch(apiUrl("/api/player/register"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -63,6 +72,7 @@ export default function ResultPage() {
             phone: s.phone,
             nickname: s.nickname,
             deviceCode: s.deviceCode,
+            terminalSessionId,
           }),
         }).then((r) => r.json()).catch(() => null);
         if (reg?.success) {
@@ -103,6 +113,7 @@ export default function ResultPage() {
     if (countdown !== 0) return;
     if (pausedRef.current) return;
     window.setTimeout(() => {
+      setTerminalState("WAITING_CARD");
       router.replace("/");
     }, 0);
   }, [phase, countdown, router]);
@@ -110,13 +121,15 @@ export default function ResultPage() {
   async function continuePlay() {
     pausedRef.current = true;
     const s = getSession();
-    const res = await fetch("/api/game/start", {
+    const terminalSessionId = getTerminalSessionId();
+    const res = await fetch(apiUrl("/api/game/start"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         playerId: s.playerId,
         cardId: s.cardId,
         deviceCode: s.deviceCode,
+        terminalSessionId,
         mode: "apm_challenge",
       }),
     });
@@ -133,17 +146,22 @@ export default function ResultPage() {
 
   function endPlay() {
     pausedRef.current = true;
+    clearSession();
+    setTerminalState("WAITING_CARD");
     router.replace("/");
   }
 
   return (
-    <GameShell scene="stage">
+    <GameShell scene="hud">
       <div className="mx-auto flex min-h-screen max-w-xl flex-col justify-center px-6 py-10">
+        <div className="mb-6 text-center">
+          <h1 className="font-display title-glow text-4xl tracking-wider text-[#ff3b45]">战绩结算</h1>
+        </div>
         {phase === "submitting" && (
-          <div className="text-center text-[#aaa]">成绩校验提交中…</div>
+          <div className="hud-frame text-center text-[#aaa]">成绩校验提交中…</div>
         )}
         {phase === "error" && (
-          <div className="panel-glow rounded-2xl p-8 text-center">
+          <div className="panel-glow hud-frame rounded-2xl p-8 text-center">
             <p className="mb-4 text-[#ff7777]">{error}</p>
             <button type="button" className="btn-game rounded-lg px-6 py-2" onClick={() => router.push("/modes")}>
               返回
@@ -154,10 +172,10 @@ export default function ResultPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="panel-glow rounded-2xl p-8 text-center"
+            className="panel-glow hud-frame rounded-2xl p-8 text-center"
           >
             <div className="text-[#aaa]">测试完成</div>
-            <div className="font-display mt-3 text-3xl tracking-wide text-[#ffe9a8]">
+            <div className="font-display mt-3 text-3xl tracking-wide text-[#ff3b45]">
               {result.rankLevel} · {result.rankTitle}
             </div>
             <div className="mt-4 text-6xl font-black text-white drop-shadow-[0_0_20px_rgba(255,51,68,0.45)]">
@@ -202,16 +220,17 @@ export default function ResultPage() {
               </button>
               <button
                 type="button"
-                className="rounded-lg border border-[#666] bg-[#222] px-6 py-3"
+                className="hud-frame rounded-lg px-6 py-3 text-[#ddd] hover:text-white"
                 onClick={endPlay}
               >
                 结束游戏
               </button>
               <button
                 type="button"
-                className="rounded-lg border border-[#ff334450] bg-transparent px-6 py-3 text-[#ffd56a]"
+                className="hud-frame rounded-lg px-6 py-3 text-[#ffd56a] hover:text-white"
                 onClick={() => {
                   pausedRef.current = true;
+                  setTerminalState("RANKING");
                   router.push("/leaderboard");
                 }}
               >

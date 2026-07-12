@@ -40,3 +40,13 @@ next-env.d.ts
 docs/ref-transition/
 public/brand/logo-full.src.png
 *.log
+
+.env
+.env.local
+.env.*.local
+.env.production
+.env.test
+!.env.example
+!.env.development
+!.env.test.example
+!.env.production.example
