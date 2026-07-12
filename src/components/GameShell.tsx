@@ -36,35 +36,35 @@ export function GameShell({
     return () => clearInterval(t);
   }, []);
 
-  const bg =
+  // hud：使用干净 HUD 底图；其它场景保留原图并加压暗
+  const bgImage =
     scene === "hud"
-      ? `
-          radial-gradient(ellipse at center, rgba(80,8,14,0.35), rgba(5,5,8,0.92) 60%),
-          linear-gradient(180deg, #050508 0%, #0a0608 100%),
-          url(/scenes/arena.jpg)
-        `
+      ? "url(/scenes/hud-bg.png)"
       : `
-          linear-gradient(180deg, rgba(5,5,8,0.78), rgba(8,4,8,0.9)),
+          linear-gradient(180deg, rgba(5,5,8,0.72), rgba(8,4,8,0.88)),
           url(/scenes/${scene}.jpg)
         `;
 
   return (
     <main
-      className={`relative min-h-screen overflow-hidden text-white ${className}`}
+      className={`relative min-h-screen overflow-hidden bg-black text-white ${className}`}
       style={{
-        backgroundImage: bg,
+        backgroundImage: bgImage,
         backgroundSize: "cover",
         backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        backgroundColor: "#000",
       }}
     >
-      {/* network map vibe */}
-      <div className="pointer-events-none absolute inset-0 opacity-[0.22] [background-image:radial-gradient(circle_at_20%_30%,rgba(227,28,35,0.35),transparent_28%),radial-gradient(circle_at_75%_55%,rgba(227,28,35,0.25),transparent_32%),radial-gradient(circle_at_45%_80%,rgba(227,28,35,0.18),transparent_25%)]" />
-      <div className="pointer-events-none absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(227,28,35,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(227,28,35,0.05)_1px,transparent_1px)] [background-size:48px_48px]" />
-      <div className="scanlines pointer-events-none absolute inset-0" />
-      <div className="hud-scan-line" />
+      {/* 轻微暗角，避免抢过底图细节 */}
+      {scene === "hud" && (
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_35%,rgba(0,0,0,0.45)_100%)]" />
+      )}
+      <div className="scanlines pointer-events-none absolute inset-0 opacity-30" />
+      <div className="hud-scan-line opacity-40" />
       {showHudChrome && <HudCornerMarks />}
       {showHudChrome && (
-        <div className="pointer-events-none absolute bottom-8 left-8 font-tech text-xs tracking-wider text-[#e31c23]/80">
+        <div className="pointer-events-none absolute bottom-6 left-6 z-[5] font-tech text-[11px] tracking-[0.2em] text-[#e31c23]/85">
           {clock || "--:--:--"}
           <span className="ml-3 text-[#666]">{env.toUpperCase()}</span>
         </div>
