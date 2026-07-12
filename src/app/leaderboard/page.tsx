@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import { getSession } from "@/lib/client";
 import { GameShell } from "@/components/GameShell";
+import { BoardHeader, BoardRowView } from "@/components/LeaderboardRow";
 
 type Row = {
   rank: number;
@@ -60,7 +60,6 @@ export default function LeaderboardPage() {
     setLoading(true);
     busy.current = true;
     try {
-      // first probe to get myRank
       const probe = await fetchSlice(0);
       if (!probe.success) return;
       setTotal(probe.total || 0);
@@ -203,8 +202,9 @@ export default function LeaderboardPage() {
 
         <div
           ref={scrollBox}
-          className="panel-glow relative flex-1 space-y-2 overflow-y-auto rounded-2xl p-3"
+          className="panel-glow relative flex-1 overflow-y-auto rounded-2xl p-3"
         >
+          <BoardHeader />
           <div ref={topSentinel} className="py-2 text-center text-xs text-[#666]">
             {loadingMore && hasMoreUp ? "加载上一页…" : hasMoreUp ? "上滑加载更多" : ""}
           </div>
@@ -220,41 +220,16 @@ export default function LeaderboardPage() {
             <p className="py-16 text-center text-[#666]">暂无成绩</p>
           )}
 
-          {list.map((row) => {
-            const isMe = Boolean(nickname && row.nickname === nickname);
-            return (
-              <motion.div
-                key={row.playerId}
-                layout
-                ref={isMe ? myRef : undefined}
-                className={`flex items-center gap-3 rounded-xl border px-4 py-3 ${
-                  isMe
-                    ? "border-[#ffd56a] bg-[#ff334433] shadow-[0_0_24px_#ff334455] ring-2 ring-[#ffd56a88]"
-                    : row.rank <= 3
-                      ? "border-[#ffd56a44] bg-[#2a1a10]/70"
-                      : "border-[#ffffff12] bg-black/25"
-                }`}
-              >
-                <div className="font-tech w-10 text-center text-xl text-[#ff3344]">
-                  {row.rank}
+          <div className="space-y-2">
+            {list.map((row) => {
+              const isMe = Boolean(nickname && row.nickname === nickname);
+              return (
+                <div key={row.playerId} ref={isMe ? myRef : undefined}>
+                  <BoardRowView row={row} highlight={isMe} />
                 </div>
-                <div className="flex-1">
-                  <div className="font-semibold">
-                    {row.nickname}
-                    {isMe && <span className="ml-2 text-xs text-[#ffd56a]">我</span>}
-                    <span className="ml-2 text-xs text-[#888]">
-                      {row.rankLevel} · {row.rankTitle}
-                    </span>
-                  </div>
-                  <div className="text-xs text-[#888]">
-                    {row.phoneMasked} · APM {row.apm} · 正确率 {row.accuracy}% · 连击{" "}
-                    {row.maxCombo}
-                  </div>
-                </div>
-                <div className="text-xl font-bold text-[#ffe9a8]">{row.score}</div>
-              </motion.div>
-            );
-          })}
+              );
+            })}
+          </div>
 
           <div ref={bottomSentinel} className="py-4 text-center text-sm text-[#888]">
             {loadingMore && hasMoreDown ? (
@@ -278,5 +253,5 @@ function mergeRows(a: Row[], b: Row[]) {
   const map = new Map<number, Row>();
   for (const r of a) map.set(r.playerId, r);
   for (const r of b) map.set(r.playerId, r);
-  return Array.from(map.values()).sort((a, b) => a.rank - b.rank);
+  return Array.from(map.values()).sort((x, y) => x.rank - y.rank);
 }

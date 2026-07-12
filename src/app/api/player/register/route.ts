@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { endOfDay, fail, ok, startOfDay } from "@/lib/api";
 import { getConfigNumber } from "@/lib/config";
+import { NICKNAME_HINT, validateNickname } from "@/lib/nickname";
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
@@ -11,9 +12,9 @@ export async function POST(req: Request) {
 
   if (!cardId) return fail("缺少 cardId");
   if (!/^1\d{10}$/.test(phone)) return fail("请输入有效的11位手机号");
-  if (!nickname || nickname.length < 2 || nickname.length > 50) {
-    return fail("昵称长度需为 2–50 个字符");
-  }
+
+  const nickErr = validateNickname(nickname);
+  if (nickErr) return fail(nickErr || NICKNAME_HINT);
 
   const card = await prisma.card.findUnique({ where: { id: BigInt(cardId) } });
   if (!card || card.status !== "active") return fail("卡片无效", 403);
@@ -33,7 +34,9 @@ export async function POST(req: Request) {
     });
   } else {
     if (byNick) {
-      return fail("该昵称已占用，请使用别的昵称", 409, { code: "NICKNAME_TAKEN" });
+      return fail("该昵称已占用，请使用别的昵称", 409, {
+        code: "NICKNAME_TAKEN",
+      });
     }
     player = await prisma.player.create({
       data: {
@@ -56,7 +59,7 @@ export async function POST(req: Request) {
     playerId: Number(player.id),
     todayPlayCount,
     dailyPlayLimit,
-    canPlay: true, // 超次仍可练习
+    canPlay: true,
     practiceOnly: todayPlayCount >= dailyPlayLimit,
     deviceCode,
     nickname: player.nickname,

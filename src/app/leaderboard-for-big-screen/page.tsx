@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GameShell } from "@/components/GameShell";
+import { BoardHeader, BoardRowView } from "@/components/LeaderboardRow";
+import { displayNickname } from "@/lib/nickname";
 
 type Row = {
   rank: number;
@@ -64,12 +66,10 @@ export default function BigScreenLeaderboardPage() {
     }
   }, []);
 
-  // initial
   useEffect(() => {
     void fetchPage(0, true);
   }, [fetchPage]);
 
-  // realtime poll: refresh first page / full loaded window when top20 changes
   useEffect(() => {
     const timer = setInterval(async () => {
       try {
@@ -95,7 +95,6 @@ export default function BigScreenLeaderboardPage() {
     return () => clearInterval(timer);
   }, []);
 
-  // infinite scroll
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
@@ -152,7 +151,6 @@ export default function BigScreenLeaderboardPage() {
           </div>
         </header>
 
-        {/* Top 3 podium */}
         <div className="mb-8 grid gap-4 md:grid-cols-3">
           {[2, 1, 3].map((podiumRank) => {
             const row = top3.find((r) => r.rank === podiumRank);
@@ -166,23 +164,27 @@ export default function BigScreenLeaderboardPage() {
               <motion.div
                 key={podiumRank}
                 layout
-                className={`rounded-2xl border px-5 py-6 text-center ${styles}`}
+                className={`overflow-hidden rounded-2xl border px-5 py-6 text-center ${styles}`}
               >
                 <div className="font-tech text-sm tracking-widest text-[#ffd56a]">
                   NO.{podiumRank}
                 </div>
                 {row ? (
                   <>
-                    <div className="font-display mt-3 text-3xl text-white md:text-4xl">
-                      {row.nickname}
+                    <div
+                      className="font-display mx-auto mt-3 max-w-full truncate text-3xl text-white md:text-4xl"
+                      title={row.nickname}
+                      style={{ maxWidth: "10em" }}
+                    >
+                      {displayNickname(row.nickname, 10)}
                     </div>
-                    <div className="mt-2 text-4xl font-black text-[#ffe9a8] md:text-5xl">
+                    <div className="mt-2 text-4xl font-black tabular-nums text-[#ffe9a8] md:text-5xl">
                       {row.score}
                     </div>
-                    <div className="mt-2 text-sm text-[#bbb]">
+                    <div className="mt-2 truncate text-sm text-[#bbb]">
                       {row.rankLevel} · {row.rankTitle}
                     </div>
-                    <div className="mt-1 text-xs text-[#888]">
+                    <div className="mt-1 text-xs tabular-nums text-[#888]">
                       APM {row.apm} · 连击 {row.maxCombo} · {row.accuracy}%
                     </div>
                   </>
@@ -195,12 +197,8 @@ export default function BigScreenLeaderboardPage() {
         </div>
 
         <div className="panel-glow flex-1 overflow-hidden rounded-2xl">
-          <div className="grid grid-cols-[80px_1fr_140px_160px_120px] gap-2 border-b border-[#ffffff18] px-5 py-3 text-xs tracking-wider text-[#888]">
-            <div>排名</div>
-            <div>选手</div>
-            <div>段位</div>
-            <div>APM / 连击</div>
-            <div className="text-right">综合分</div>
+          <div className="px-3 pt-2">
+            <BoardHeader />
           </div>
           <div className="max-h-[52vh] space-y-1 overflow-y-auto px-3 py-3">
             <AnimatePresence initial={false}>
@@ -210,24 +208,8 @@ export default function BigScreenLeaderboardPage() {
                   layout
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="grid grid-cols-[80px_1fr_140px_160px_120px] items-center gap-2 rounded-xl border border-transparent px-2 py-3 hover:border-[#ff334440] hover:bg-white/5"
                 >
-                  <div className="font-tech text-2xl text-[#ff3344]">{row.rank}</div>
-                  <div>
-                    <div className="text-xl font-semibold">{row.nickname}</div>
-                    <div className="text-xs text-[#777]">{row.phoneMasked}</div>
-                  </div>
-                  <div className="text-sm text-[#ffd56a]">
-                    {row.rankLevel}
-                    <div className="text-xs text-[#888]">{row.rankTitle}</div>
-                  </div>
-                  <div className="text-sm text-[#ccc]">
-                    APM {row.apm}
-                    <div className="text-xs text-[#888]">连击 {row.maxCombo}</div>
-                  </div>
-                  <div className="text-right text-2xl font-bold text-[#ffe9a8]">
-                    {row.score}
-                  </div>
+                  <BoardRowView row={row} showPhone />
                 </motion.div>
               ))}
             </AnimatePresence>
