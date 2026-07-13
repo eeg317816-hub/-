@@ -3,7 +3,13 @@ node_modules
 .git
 .env
 .env.*
+.env.local
+.env.development
+.env.production
+.env.test
 !.env.example
+!.env.test.example
+!.env.production.example
 *.tar
 *.log
 .DS_Store

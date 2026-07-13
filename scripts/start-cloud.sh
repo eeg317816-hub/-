@@ -23,6 +23,9 @@ if [ -n "$ADMIN_SEED_PASSWORD" ]; then
 fi
 
 echo "[start] 启动 Next.js 于 ${HOSTNAME}:${PORT}"
+# Next standalone / Zeabur：优先读环境变量 PORT、HOSTNAME
+export PORT
+export HOSTNAME
 if [ -f "./server.js" ]; then
   exec node server.js
 fi
