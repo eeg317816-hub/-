@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+.env
+.env.*
+!.env.example
+*.tar
+*.log
+.DS_Store
+.venv
+coverage
+docs/ref-transition
+postgres-*.tar
+tsconfig.tsbuildinfo

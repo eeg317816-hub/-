@@ -21,6 +21,7 @@
 # misc
 .DS_Store
 *.pem
+*.tar
 uploads/*
 
 # debug
