@@ -1,69 +1,62 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getDeviceCode } from "@/lib/client";
 import { GameShell } from "@/components/GameShell";
+import { CardInsertSlot } from "@/components/CardInsertSlot";
 import { playSfx } from "@/lib/sfx";
 import { useCardScanner } from "@/hooks/useCardScanner";
-import { enableDevCardInput, apiUrl } from "@/lib/public-env";
-import {
-  setTerminalSessionId,
-  setTerminalState,
-} from "@/lib/terminal-state";
+import { enableCardTapSim, apiUrl } from "@/lib/public-env";
+import { setTerminalSessionId, setTerminalState } from "@/lib/terminal-state";
 
-const DEV_PLACEHOLDER = "DEV-CARD-001";
+const TRANSITION_SECONDS = 2.4;
 
 export default function HomePage() {
   const router = useRouter();
-  const [cardCode, setCardCode] = useState("");
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
   const [playingTransition, setPlayingTransition] = useState(false);
   const [scannerOn, setScannerOn] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const enteringRef = useRef(false);
-  const showDevInput = enableDevCardInput();
+  const showCardTap = enableCardTapSim();
 
   useEffect(() => {
     getDeviceCode();
     setTerminalState("WAITING_CARD");
   }, []);
 
-  const enterLogin = useCallback(
-    async (_ignoredScanPayload?: string) => {
-      if (enteringRef.current || loading || playingTransition) return;
-      enteringRef.current = true;
-      setScannerOn(false);
-      setLoading(true);
-      setStatus("正在进入…");
+  const enterLogin = useCallback(async () => {
+    if (enteringRef.current || loading || playingTransition) return;
+    enteringRef.current = true;
+    setScannerOn(false);
+    setLoading(true);
+    setStatus("正在进入…");
 
-      try {
-        const deviceCode = getDeviceCode();
-        const res = await fetch(apiUrl("/api/terminal/open"), {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ deviceCode }),
-        });
-        const json = await res.json();
-        if (!json.success) throw new Error(json.error || "无法开启终端");
+    try {
+      const deviceCode = getDeviceCode();
+      const res = await fetch(apiUrl("/api/terminal/open"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deviceCode }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "无法开启终端");
 
-        setTerminalSessionId(json.terminalSessionId);
-        setTerminalState("LOGIN");
-        playSfx("whoosh", 0.55);
-        setPlayingTransition(true);
-      } catch (err) {
-        setStatus(err instanceof Error ? err.message : "进入失败");
-        setLoading(false);
-        enteringRef.current = false;
-        setScannerOn(true);
-      }
-    },
-    [loading, playingTransition],
-  );
+      setTerminalSessionId(json.terminalSessionId);
+      setTerminalState("LOGIN");
+      playSfx("whoosh", 0.55);
+      setPlayingTransition(true);
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : "进入失败");
+      setLoading(false);
+      enteringRef.current = false;
+      setScannerOn(true);
+    }
+  }, [loading, playingTransition]);
 
   useCardScanner({
     enabled: scannerOn && !playingTransition,
@@ -78,19 +71,26 @@ export default function HomePage() {
     if (!v) return;
     v.currentTime = 0;
     void v.play().catch(() => {
-      setTimeout(() => router.push("/login"), 800);
+      setTimeout(() => router.push("/login"), 600);
     });
   }, [playingTransition, router]);
 
-  function onSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    void enterLogin();
+  function finishTransition() {
+    router.push("/login");
+  }
+
+  function onVideoTimeUpdate() {
+    const v = videoRef.current;
+    if (!v) return;
+    if (v.currentTime >= TRANSITION_SECONDS) {
+      v.pause();
+      finishTransition();
+    }
   }
 
   return (
     <GameShell scene="hud">
       <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col items-center justify-center px-5 py-8">
-        {/* 顶栏标题框 —— 对齐参考图 */}
         <motion.h1
           initial={{ opacity: 0, y: -14 }}
           animate={{ opacity: 1, y: 0 }}
@@ -102,19 +102,15 @@ export default function HomePage() {
           </span>
         </motion.h1>
 
-        {/* Logo 双线框 */}
         <motion.div
           initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.05 }}
           className="hud-frame-logo hud-pulse mb-8 w-full max-w-xl p-3 md:p-4"
         >
-          <Image
+          <img
             src="/brand/logo-full.png"
             alt="全职高手"
-            width={785}
-            height={552}
-            priority
             className="h-auto w-full object-contain drop-shadow-[0_0_36px_rgba(227,28,35,0.65)]"
           />
         </motion.div>
@@ -135,39 +131,22 @@ export default function HomePage() {
             <p className="mt-3 text-center text-sm text-[#ff8877]">{status}</p>
           )}
 
-          {showDevInput && (
-            <form onSubmit={onSubmit} className="mt-5 flex items-stretch gap-2.5">
-              <input
-                value={cardCode}
-                onChange={(e) => setCardCode(e.target.value)}
-                placeholder={`开发调试输入 ${DEV_PLACEHOLDER}`}
-                className="hud-input flex-1 text-sm placeholder:text-[#e31c23]/55"
-                autoComplete="off"
-              />
-              <button
-                type="submit"
-                disabled={loading || playingTransition}
-                className="btn-game shrink-0 rounded-md px-6 py-3 text-sm font-semibold tracking-wider"
-              >
-                {loading || playingTransition ? "进入中" : "进入"}
-              </button>
-            </form>
-          )}
-
-          {!showDevInput && (
+          {showCardTap ? (
+            <CardInsertSlot
+              disabled={loading || playingTransition}
+              onInsert={() => void enterLogin()}
+            />
+          ) : (
             <p className="mt-6 text-center font-tech text-xs tracking-[0.35em] text-[#e31c23]/85">
               WAITING FOR CARD SCAN
             </p>
           )}
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.35 }}
-        >
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}>
           <Link
             href="/leaderboard"
+            prefetch={false}
             className="hud-link mt-12 inline-block text-sm tracking-[0.15em]"
           >
             &gt;&gt;&nbsp;查看排行榜&nbsp;&lt;&lt;
@@ -189,9 +168,10 @@ export default function HomePage() {
               className="h-full w-full object-cover"
               playsInline
               autoPlay
-              muted={false}
-              onEnded={() => router.push("/login")}
-              onError={() => router.push("/login")}
+              muted
+              onTimeUpdate={onVideoTimeUpdate}
+              onEnded={finishTransition}
+              onError={finishTransition}
             />
           </motion.div>
         )}

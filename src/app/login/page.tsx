@@ -6,13 +6,10 @@ import { motion } from "framer-motion";
 import { clearSession, getSession, saveSession } from "@/lib/client";
 import { GameShell } from "@/components/GameShell";
 import { playSfx } from "@/lib/sfx";
-import { NICKNAME_HINT, validateNickname } from "@/lib/nickname";
+import { NICKNAME_HINT, sanitizeNicknameInput, validateNickname } from "@/lib/nickname";
 import { apiUrl } from "@/lib/public-env";
 import { useHeartbeat } from "@/hooks/useHeartbeat";
-import {
-  getTerminalSessionId,
-  setTerminalState,
-} from "@/lib/terminal-state";
+import { getTerminalSessionId, setTerminalState } from "@/lib/terminal-state";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -25,16 +22,10 @@ export default function LoginPage() {
   useEffect(() => {
     setTerminalState("LOGIN");
     playSfx("whoosh", 0.2);
-    if (!getTerminalSessionId()) {
-      router.replace("/");
-    }
+    if (!getTerminalSessionId()) router.replace("/");
   }, [router]);
 
   useHeartbeat(true);
-
-  function onNicknameChange(value: string) {
-    setNickname(value.replace(/[^\u4e00-\u9fffA-Za-z0-9]/g, "").slice(0, 10));
-  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -115,11 +106,7 @@ export default function LoginPage() {
           >
             选手登记
           </motion.h1>
-          <button
-            type="button"
-            onClick={logout}
-            className="hud-frame px-4 py-2 text-sm text-[#ddd] hover:text-white"
-          >
+          <button type="button" onClick={logout} className="hud-frame px-4 py-2 text-sm text-[#ddd] hover:text-white">
             退出
           </button>
         </div>
@@ -149,21 +136,15 @@ export default function LoginPage() {
             <input
               className={`hud-input ${shake ? "shake border-[#ff3344]" : ""}`}
               value={nickname}
-              onChange={(e) => onNicknameChange(e.target.value)}
+              onChange={(e) => setNickname(sanitizeNicknameInput(e.target.value))}
               placeholder="2-10个字符"
               maxLength={10}
               required
             />
-            <p className="mt-2 text-xs leading-relaxed text-[#e31c23]/90">
-              {NICKNAME_HINT}
-            </p>
+            <p className="mt-2 text-xs leading-relaxed text-[#e31c23]/90">{NICKNAME_HINT}</p>
           </label>
           {error && <p className="text-[#ff7777]">{error}</p>}
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn-game w-full rounded-md py-3 text-lg font-semibold"
-          >
+          <button type="submit" disabled={loading} className="btn-game w-full rounded-md py-3 text-lg font-semibold">
             {loading ? "提交中…" : "进入测手速挑战"}
           </button>
         </motion.form>

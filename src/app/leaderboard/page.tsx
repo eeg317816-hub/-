@@ -165,7 +165,7 @@ export default function LeaderboardPage() {
       <div className="mx-auto flex h-screen max-w-3xl flex-col px-4 py-6">
         <div className="mb-4 flex items-center justify-between">
           <h1 className="font-display title-glow text-4xl tracking-wider text-[#ff3b45]">
-            荣耀排行榜
+            排行榜
           </h1>
           <button
             type="button"

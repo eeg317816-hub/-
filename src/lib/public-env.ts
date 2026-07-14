@@ -13,6 +13,11 @@ export function enableDevCardInput(): boolean {
   return getPublicAppEnv() !== "production";
 }
 
+/** 测试环境：点击模拟插卡（替代手工输入框） */
+export function enableCardTapSim(): boolean {
+  return enableDevCardInput();
+}
+
 export function heartbeatIntervalMs(): number {
   const n = Number(process.env.NEXT_PUBLIC_HEARTBEAT_INTERVAL_MS || 20000);
   return Number.isFinite(n) && n >= 5000 ? n : 20000;
@@ -22,8 +27,10 @@ export function publicApiBase(): string {
   return (process.env.NEXT_PUBLIC_API_BASE_URL || "").replace(/\/$/, "");
 }
 
+/** 浏览器内始终用相对路径，避免 Zeabur 误配 NEXT_PUBLIC_API_BASE_URL 导致 fetch 失败 */
 export function apiUrl(path: string): string {
-  const base = publicApiBase();
   const p = path.startsWith("/") ? path : `/${path}`;
-  return `${base}${p}`;
+  if (typeof window !== "undefined") return p;
+  const base = publicApiBase();
+  return base ? `${base}${p}` : p;
 }

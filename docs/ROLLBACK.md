@@ -7,12 +7,13 @@
 | `checkpoint-before-clear-transition` | 替换更清晰过场动画之前 |
 | `checkpoint-after-bugfix-20260712` | 修复 Router setState、后台配置、大屏仅结算后刷新、退出游戏之后 |
 | `checkpoint-nickname-board-layout-20260712` | 昵称 2–10 规则、排行榜列排版、登记页退出、超长昵称清库 |
-| `checkpoint-hud-env-terminal-20260713` | **当前推荐**：HUD UI、三环境部署、刷卡状态机、终端会话/心跳/强制释放 |
+| `checkpoint-hud-env-terminal-20260713` | HUD UI、三环境部署、刷卡状态机、终端会话/心跳/强制释放 |
+| `checkpoint-zeabur-fixes-20260714` | **当前推荐**：多语言昵称、敏感词、插卡 UI、后台成绩修复、静态资源与 API 修复 |
 
 ## 回滚到本次修改后的版本（最新稳定点）
 
 ```bash
-git switch --detach checkpoint-hud-env-terminal-20260713
+git switch --detach checkpoint-zeabur-fixes-20260714
 # 或拉分支继续开发：
 git switch -c from-nickname-layout checkpoint-nickname-board-layout-20260712
 ```

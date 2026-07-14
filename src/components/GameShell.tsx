@@ -39,7 +39,7 @@ export function GameShell({
   // hud：使用干净 HUD 底图；其它场景保留原图并加压暗
   const bgImage =
     scene === "hud"
-      ? "url(/scenes/hud-bg.png)"
+      ? "url(/hud-bg.png), url(/scenes/hud-bg.png)"
       : `
           linear-gradient(180deg, rgba(5,5,8,0.72), rgba(8,4,8,0.88)),
           url(/scenes/${scene}.jpg)
