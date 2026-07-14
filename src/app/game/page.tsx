@@ -266,6 +266,16 @@ export default function GamePage() {
   useEffect(() => {
     if (!running) return;
     const onKey = (e: KeyboardEvent) => {
+      if (e.isComposing || e.keyCode === 229) return;
+      const el = e.target as HTMLElement | null;
+      if (
+        el instanceof HTMLInputElement ||
+        el instanceof HTMLTextAreaElement ||
+        el instanceof HTMLSelectElement ||
+        el?.isContentEditable
+      ) {
+        return;
+      }
       const t = targetRef.current;
       if (!t) return;
       const k = e.key.toUpperCase();

@@ -27,6 +27,10 @@ export default function HomePage() {
   useEffect(() => {
     getDeviceCode();
     setTerminalState("WAITING_CARD");
+    return () => {
+      // 离开刷卡页时关闭监听标志，避免泄漏到登录页
+      setScannerOn(false);
+    };
   }, []);
 
   const enterLogin = useCallback(async () => {
@@ -58,6 +62,7 @@ export default function HomePage() {
     }
   }, [loading, playingTransition]);
 
+  // 读卡器仅本页启用；登录/游戏等页不挂载此 Hook 的 enabled=true
   useCardScanner({
     enabled: scannerOn && !playingTransition,
     onScan: () => {
@@ -104,7 +109,7 @@ export default function HomePage() {
 
         <motion.div
           initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, y: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.05 }}
           className="hud-frame-logo hud-pulse mb-8 w-full max-w-xl p-3 md:p-4"
         >
@@ -119,9 +124,9 @@ export default function HomePage() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.12 }}
-          className="w-full max-w-md"
+          className="flex w-full max-w-md flex-col items-center"
         >
-          <div className="hud-frame px-5 py-3.5 text-center">
+          <div className="hud-frame w-full px-5 py-3.5 text-center">
             <p className="text-lg tracking-wide text-[#f5f5f5] md:text-xl">
               请刷卡登录后开始比赛
             </p>

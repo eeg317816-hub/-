@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, KeyboardEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { clearSession, getSession, saveSession } from "@/lib/client";
@@ -18,8 +18,10 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [shake, setShake] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isComposing, setIsComposing] = useState(false);
 
   useEffect(() => {
+    // LOGIN 页：绝不挂载读卡监听；状态切离 WAITING_CARD
     setTerminalState("LOGIN");
     playSfx("whoosh", 0.2);
     if (!getTerminalSessionId()) router.replace("/");
@@ -27,8 +29,14 @@ export default function LoginPage() {
 
   useHeartbeat(true);
 
+  function applyNicknameFinal(raw: string) {
+    setNickname(sanitizeNicknameInput(raw));
+  }
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
+    // 拼音组合未完成：禁止提交
+    if (isComposing) return;
     setError("");
     const nickErr = validateNickname(nickname);
     if (nickErr) {
@@ -89,6 +97,14 @@ export default function LoginPage() {
     }
   }
 
+  function onFormKeyDown(e: KeyboardEvent<HTMLFormElement>) {
+    if (e.nativeEvent.isComposing || e.keyCode === 229) {
+      // 组合态 Enter / Space 只用于选词，不提交
+      if (e.key === "Enter") e.preventDefault();
+      return;
+    }
+  }
+
   function logout() {
     clearSession();
     playSfx("whoosh", 0.25);
@@ -106,7 +122,11 @@ export default function LoginPage() {
           >
             选手登记
           </motion.h1>
-          <button type="button" onClick={logout} className="hud-frame px-4 py-2 text-sm text-[#ddd] hover:text-white">
+          <button
+            type="button"
+            onClick={logout}
+            className="hud-frame px-4 py-2 text-sm text-[#ddd] hover:text-white"
+          >
             退出
           </button>
         </div>
@@ -117,6 +137,7 @@ export default function LoginPage() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           onSubmit={onSubmit}
+          onKeyDown={onFormKeyDown}
           className="hud-frame space-y-5 p-6"
         >
           <label className="block">
@@ -128,6 +149,7 @@ export default function LoginPage() {
               placeholder="11位手机号"
               inputMode="numeric"
               maxLength={11}
+              autoComplete="tel"
               required
             />
           </label>
@@ -136,15 +158,38 @@ export default function LoginPage() {
             <input
               className={`hud-input ${shake ? "shake border-[#ff3344]" : ""}`}
               value={nickname}
-              onChange={(e) => setNickname(sanitizeNicknameInput(e.target.value))}
+              onCompositionStart={() => setIsComposing(true)}
+              onCompositionEnd={(e) => {
+                setIsComposing(false);
+                applyNicknameFinal(e.currentTarget.value);
+              }}
+              onChange={(e) => {
+                const v = e.target.value;
+                // 组合中只同步原始值，不 trim/replace/校验
+                if (isComposing) {
+                  setNickname(v.slice(0, 20));
+                  return;
+                }
+                applyNicknameFinal(v);
+              }}
+              onKeyDown={(e) => {
+                if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+              }}
               placeholder="2-10个字符"
-              maxLength={10}
+              maxLength={isComposing ? 20 : 10}
+              autoComplete="off"
               required
             />
-            <p className="mt-2 text-xs leading-relaxed text-[#e31c23]/90">{NICKNAME_HINT}</p>
+            <p className="mt-2 text-xs leading-relaxed text-[#e31c23]/90">
+              {NICKNAME_HINT}
+            </p>
           </label>
           {error && <p className="text-[#ff7777]">{error}</p>}
-          <button type="submit" disabled={loading} className="btn-game w-full rounded-md py-3 text-lg font-semibold">
+          <button
+            type="submit"
+            disabled={loading || isComposing}
+            className="btn-game w-full rounded-md py-3 text-lg font-semibold"
+          >
             {loading ? "提交中…" : "进入测手速挑战"}
           </button>
         </motion.form>
