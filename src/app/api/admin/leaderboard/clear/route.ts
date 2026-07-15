@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/db";
 import { fail, ok, startOfDay, endOfDay } from "@/lib/api";
 import { requireAdmin } from "@/lib/admin";
+import { clearBestScores } from "@/lib/leaderboard";
+import { invalidateLeaderboardCache } from "@/lib/leaderboard-cache";
 
 export async function POST(req: Request) {
   try {
@@ -16,11 +18,15 @@ export async function POST(req: Request) {
       where: { createdAt: { gte: startOfDay(), lte: endOfDay() } },
       data: { isValid: false },
     });
+    await clearBestScores("today");
+    invalidateLeaderboardCache("today");
     return ok({ invalidated: r.count });
   }
 
   const r = await prisma.gameSession.updateMany({
     data: { isValid: false },
   });
+  await clearBestScores("all");
+  invalidateLeaderboardCache();
   return ok({ invalidated: r.count });
 }

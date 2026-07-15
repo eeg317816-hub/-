@@ -6,7 +6,12 @@ import {
   computeFromSummary,
   type GameEvent,
 } from "@/lib/scoring";
-import { getPlayerBestScore, getTodayRank } from "@/lib/leaderboard";
+import {
+  getPlayerBestScore,
+  getTodayRank,
+  upsertPlayerBestFromSession,
+} from "@/lib/leaderboard";
+import { invalidateLeaderboardCache } from "@/lib/leaderboard-cache";
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
@@ -91,10 +96,15 @@ export async function POST(req: Request) {
     },
   });
 
+  if (isValid) {
+    await upsertPlayerBestFromSession(updated);
+    invalidateLeaderboardCache("today");
+    invalidateLeaderboardCache("all");
+  }
+
   const todayRank = isValid ? await getTodayRank(updated.playerId) : null;
   const bestScore = await getPlayerBestScore(updated.playerId);
 
-  
   if (session.terminalSessionId) {
     await prisma.terminalSession.updateMany({
       where: { id: session.terminalSessionId },

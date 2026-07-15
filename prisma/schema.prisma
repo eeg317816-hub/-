@@ -17,6 +17,7 @@ model Player {
   lastLoginAt      DateTime?         @map("last_login_at")
   sessions         GameSession[]
   terminalSessions TerminalSession[]
+  bestScores       PlayerBestScore[]
 
   @@index([phone], map: "idx_players_phone")
   @@map("players")
@@ -121,4 +122,29 @@ model AdminUser {
   lastLoginAt  DateTime? @map("last_login_at")
 
   @@map("admin_users")
+}
+
+/// 玩家最佳成绩快照（总榜 / 今日榜），供排行榜查询与大屏 Top100
+model PlayerBestScore {
+  id            BigInt   @id @default(autoincrement())
+  playerId      BigInt   @map("player_id")
+  /// all | today
+  board         String   @db.VarChar(10)
+  /// 今日榜为 Asia/Shanghai 的 YYYY-MM-DD；总榜固定空串
+  periodKey     String   @default("") @map("period_key") @db.VarChar(16)
+  score         Int
+  rankLevel     String   @map("rank_level") @db.VarChar(10)
+  rankTitle     String   @map("rank_title") @db.VarChar(50)
+  apm           Int      @default(0)
+  accuracy      Decimal  @default(0) @db.Decimal(5, 2)
+  maxCombo      Int      @default(0) @map("max_combo")
+  errorCount    Int      @default(0) @map("error_count")
+  gameSessionId BigInt?  @map("game_session_id")
+  achievedAt    DateTime @map("achieved_at")
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at")
+  player        Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([playerId, board, periodKey], map: "uq_player_best_board_period")
+  @@index([board, periodKey, score(sort: Desc)], map: "idx_player_best_board_score")
+  @@map("player_best_scores")
 }
