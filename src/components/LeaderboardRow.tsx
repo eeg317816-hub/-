@@ -22,7 +22,7 @@ export const BOARD_GRID =
 export function BoardHeader() {
   return (
     <div
-      className={`${BOARD_GRID} border-b border-[#ffffff18] px-3 py-2 text-xs tracking-wider text-[#888]`}
+      className={`${BOARD_GRID} border-b border-[#ffffff18] px-3 py-2.5 text-xs tracking-wider text-[#888]`}
     >
       <div className="text-center">排名</div>
       <div>选手</div>
@@ -36,15 +36,15 @@ export function BoardHeader() {
 export function BoardRowView({
   row,
   highlight,
-  showPhone,
 }: {
   row: BoardRow;
   highlight?: boolean;
+  /** @deprecated 前台排行榜不再展示手机号；保留参数以免旧调用报错 */
   showPhone?: boolean;
 }) {
   return (
     <div
-      className={`${BOARD_GRID} rounded-xl border px-3 py-3 ${
+      className={`${BOARD_GRID} rounded-xl border px-3 py-3.5 ${
         highlight
           ? "border-[#ffd56a] bg-[#ff334433] shadow-[0_0_24px_#ff334455] ring-2 ring-[#ffd56a88]"
           : row.rank <= 3
@@ -57,30 +57,26 @@ export function BoardRowView({
       </div>
       <div className="min-w-0 overflow-hidden">
         <div
-          className="truncate font-semibold"
+          className="truncate text-[1.05rem] font-semibold leading-snug tracking-wide text-white"
           title={row.nickname}
-          style={{ maxWidth: "10em" }}
         >
           {displayNickname(row.nickname, 10)}
           {highlight && (
-            <span className="ml-1 text-xs text-[#ff6b73]">我</span>
+            <span className="ml-1.5 align-middle text-xs font-normal text-[#ff6b73]">我</span>
           )}
         </div>
-        {showPhone && row.phoneMasked && (
-          <div className="truncate text-xs text-[#777]">{row.phoneMasked}</div>
-        )}
       </div>
       <div className="min-w-0 overflow-hidden">
-        <div className="truncate text-sm text-[#ff6b73]">{row.rankLevel}</div>
-        <div className="truncate text-xs text-[#888]">{row.rankTitle}</div>
+        <div className="truncate text-sm leading-snug text-[#ff6b73]">{row.rankLevel}</div>
+        <div className="truncate text-xs leading-snug text-[#888]">{row.rankTitle}</div>
       </div>
       <div className="min-w-0 overflow-hidden text-sm text-[#ccc]">
-        <div className="truncate tabular-nums">APM {row.apm}</div>
-        <div className="truncate text-xs text-[#888] tabular-nums">
+        <div className="truncate leading-snug tabular-nums">APM {row.apm}</div>
+        <div className="truncate text-xs leading-snug tabular-nums text-[#888]">
           连击 {row.maxCombo}
         </div>
       </div>
-      <div className="text-right text-xl font-bold tabular-nums text-[#ff3b45]">
+      <div className="text-right text-xl font-bold tabular-nums leading-none text-[#ff3b45]">
         {row.score}
       </div>
     </div>

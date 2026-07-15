@@ -242,12 +242,12 @@ export default function BigScreenLeaderboardPage() {
                             <div className="font-tech text-center text-[clamp(1.2rem,2.2vw,2rem)] tabular-nums text-[#ff3344]">
                               {row.rank}
                             </div>
-                            <div className="min-w-0 overflow-hidden">
-                              <div className="truncate text-[clamp(1rem,1.8vw,1.6rem)] font-semibold" title={row.nickname}>
+                            <div className="flex min-w-0 items-center overflow-hidden">
+                              <div
+                                className="truncate text-[clamp(1.15rem,2vw,1.85rem)] font-semibold leading-none tracking-wide text-white"
+                                title={row.nickname}
+                              >
                                 {displayNickname(row.nickname, 10)}
-                              </div>
-                              <div className="truncate text-[clamp(0.7rem,1vw,0.95rem)] text-[#777]">
-                                {row.phoneMasked}
                               </div>
                             </div>
                             <div className="min-w-0 overflow-hidden">
