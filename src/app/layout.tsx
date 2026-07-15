@@ -3,7 +3,10 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "全职高手 · 测手速",
-  description: "展会手速挑战 · 荣耀职业水准",
+  description: "展会手速挑战 · 职业水准",
+  icons: {
+    icon: [{ url: "/favicon.ico", sizes: "64x64", type: "image/x-icon" }],
+  },
 };
 
 export default function RootLayout({

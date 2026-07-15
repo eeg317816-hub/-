@@ -13,10 +13,8 @@ const configs: Array<{ key: string; value: string; description: string }> = [
 
 async function main() {
   const username = process.env.ADMIN_SEED_USERNAME || "admin";
-  const password = process.env.ADMIN_SEED_PASSWORD;
-  if (!password) {
-    throw new Error("请设置环境变量 ADMIN_SEED_PASSWORD 后再执行 seed");
-  }
+  // 各环境统一默认；Zeabur 请将 ADMIN_SEED_PASSWORD 设为 admin123
+  const password = process.env.ADMIN_SEED_PASSWORD || "admin123";
   const passwordHash = await bcrypt.hash(password, 10);
   await prisma.adminUser.upsert({
     where: { username },

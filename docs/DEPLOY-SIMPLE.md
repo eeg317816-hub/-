@@ -33,7 +33,7 @@
 | `DATABASE_URL` | 用「引用 / Reference」选 Postgres 的连接串 |
 | `ADMIN_JWT_SECRET` | 随便一长串，如 `qzgs-zeabur-jwt-lespaul09` |
 | `ADMIN_SEED_USERNAME` | `admin` |
-| `ADMIN_SEED_PASSWORD` | 你的后台密码，如 `Lespaul09@` |
+| `ADMIN_SEED_PASSWORD` | `admin123`（各环境统一） |
 | `APP_ENV` | `test` |
 | `NEXT_PUBLIC_APP_ENV` | `test` |
 | `NEXT_PUBLIC_ENABLE_DEV_CARD_INPUT` | `true` |
