@@ -87,8 +87,9 @@ export async function POST(req: Request) {
         },
       });
 
+      // 对局时长 + 空闲 TTL，留给结算与结果页；心跳会继续滑动续期
       const playExpires = new Date(
-        now.getTime() + (durationSeconds + 10) * 1000,
+        now.getTime() + (durationSeconds + getIdleTtlSeconds()) * 1000,
       );
 
       await tx.terminalSession.update({

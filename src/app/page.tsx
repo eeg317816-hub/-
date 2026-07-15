@@ -55,7 +55,12 @@ export default function HomePage() {
       playSfx("whoosh", 0.55);
       setPlayingTransition(true);
     } catch (err) {
-      setStatus(err instanceof Error ? err.message : "进入失败");
+      const raw = err instanceof Error ? err.message : "进入失败";
+      const msg =
+        raw === "Failed to fetch" || raw === "NetworkError when attempting to fetch resource."
+          ? "网络繁忙，请稍后再刷卡"
+          : raw;
+      setStatus(msg);
       setLoading(false);
       enteringRef.current = false;
       setScannerOn(true);

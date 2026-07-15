@@ -53,11 +53,13 @@ export async function touchHeartbeat(terminalSessionId: bigint) {
     }
     return { ok: false as const, expired: true };
   }
-  await prisma.terminalSession.update({
+  // 滑动空闲窗口：每次心跳续期，避免对局/提交卡顿时被绝对 TTL 误踢
+  const expiresAt = new Date(now.getTime() + getIdleTtlSeconds() * 1000);
+  const updated = await prisma.terminalSession.update({
     where: { id: row.id },
-    data: { lastHeartbeat: now, updatedAt: now },
+    data: { lastHeartbeat: now, expiresAt, updatedAt: now },
   });
-  return { ok: true as const, expired: false, session: row };
+  return { ok: true as const, expired: false, session: updated };
 }
 
 export async function abortTerminal(terminalSessionId: bigint) {

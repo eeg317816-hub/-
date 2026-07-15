@@ -7,6 +7,7 @@ import { getSession } from "@/lib/client";
 import { GameShell } from "@/components/GameShell";
 import { ScoreFloatLayer, type FloatItem } from "@/components/ScoreFloat";
 import { playSfx } from "@/lib/sfx";
+import { useHeartbeat } from "@/hooks/useHeartbeat";
 import { setTerminalState } from "@/lib/terminal-state";
 
 const KEY_POOL = ["Q", "W", "E", "R", "A", "S", "D", "F"];
@@ -68,6 +69,9 @@ export default function GamePage() {
   });
   const targetRef = useRef<Target | null>(null);
   const endedRef = useRef(false);
+  const [ending, setEnding] = useState(false);
+
+  useHeartbeat(Boolean(play) && !ending);
 
   const pushFloat = useCallback((item: Omit<FloatItem, "id">) => {
     const id = crypto.randomUUID();
@@ -118,6 +122,9 @@ export default function GamePage() {
     if (endedRef.current || !play) return;
     endedRef.current = true;
     setRunning(false);
+    setEnding(true);
+    targetRef.current = null;
+    setTarget(null);
     const s = statsRef.current;
     const correct = s.mouseOk + s.keyOk;
     const error = s.mouseErr + s.keyErr;
@@ -158,7 +165,7 @@ export default function GamePage() {
     // 避免在 setState 更新链路中同步触发 Router 更新
     window.setTimeout(() => {
       setTerminalState("SUBMITTING");
-      router.push("/result");
+      router.replace("/result");
     }, 0);
   }, [play, router]);
 
@@ -294,6 +301,7 @@ export default function GamePage() {
 
   function startGame() {
     endedRef.current = false;
+    setEnding(false);
     eventsRef.current = [];
     statsRef.current = {
       mouseOk: 0,
@@ -397,7 +405,14 @@ export default function GamePage() {
           >
             <ScoreFloatLayer items={floats} />
 
-            {!running && (
+            {!running && ending && (
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/55">
+                <h2 className="font-display mb-2 text-3xl text-[#ff3b45]">对局结束</h2>
+                <p className="text-[#aaa]">成绩结算中，请稍候…</p>
+              </div>
+            )}
+
+            {!running && !ending && (
               <div className="absolute inset-0 z-10 flex flex-col items-center justify-center">
                 <h2 className="font-display mb-2 text-3xl text-[#ff3b45]">键鼠交替手速挑战</h2>
                 <p className="mb-6 text-[#aaa]">红点点鼠标，字母按对应键；跨类型扣血</p>

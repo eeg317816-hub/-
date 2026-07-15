@@ -34,7 +34,8 @@ export default function ResultPage() {
   const [remainRuns, setRemainRuns] = useState<number | null>(null);
   const pausedRef = useRef(false);
 
-  useHeartbeat(true);
+  // 提交未完成前不心跳，避免卡顿下会话过期强制回首页打断提交
+  useHeartbeat(phase === "done");
 
   useEffect(() => {
     setTerminalState("SUBMITTING");
@@ -89,7 +90,12 @@ export default function ResultPage() {
         }
       } catch (e) {
         if (cancelled) return;
-        setError(e instanceof Error ? e.message : "提交失败");
+        const raw = e instanceof Error ? e.message : "提交失败";
+        setError(
+          raw === "Failed to fetch"
+            ? "网络繁忙，成绩提交失败，请返回重试"
+            : raw,
+        );
         setPhase("error");
       }
     })();
