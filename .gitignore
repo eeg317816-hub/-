@@ -51,3 +51,11 @@ public/brand/logo-full.src.png
 !.env.development
 !.env.test.example
 !.env.production.example
+
+# OpenNext
+.open-next
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
