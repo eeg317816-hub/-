@@ -181,7 +181,7 @@ export default function BigScreenLeaderboardPage() {
                 {row ? (
                   <>
                     <div
-                      className="font-display mx-auto mt-[1vh] max-w-full truncate text-[clamp(1.6rem,3vw,2.8rem)] text-white"
+                      className="font-display mx-auto mt-[1vh] max-w-full truncate px-1 text-[clamp(1.6rem,3vw,2.8rem)] leading-normal text-white"
                       title={row.nickname}
                     >
                       {displayNickname(row.nickname, 10)}
@@ -242,9 +242,9 @@ export default function BigScreenLeaderboardPage() {
                             <div className="font-tech text-center text-[clamp(1.2rem,2.2vw,2rem)] tabular-nums text-[#ff3344]">
                               {row.rank}
                             </div>
-                            <div className="flex min-w-0 items-center overflow-hidden">
+                            <div className="flex min-w-0 items-center overflow-x-hidden overflow-y-visible py-[0.15em]">
                               <div
-                                className="truncate text-[clamp(1.15rem,2vw,1.85rem)] font-semibold leading-none tracking-wide text-white"
+                                className="truncate text-[clamp(1.15rem,2vw,1.85rem)] font-semibold leading-normal tracking-wide text-white"
                                 title={row.nickname}
                               >
                                 {displayNickname(row.nickname, 10)}

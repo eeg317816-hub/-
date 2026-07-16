@@ -55,9 +55,9 @@ export function BoardRowView({
       <div className="font-tech text-center text-xl tabular-nums text-[#ff3344]">
         {row.rank}
       </div>
-      <div className="min-w-0 overflow-hidden">
+      <div className="min-w-0 overflow-x-hidden overflow-y-visible py-0.5">
         <div
-          className="truncate text-[1.05rem] font-semibold leading-snug tracking-wide text-white"
+          className="truncate text-[1.05rem] font-semibold leading-normal tracking-wide text-white"
           title={row.nickname}
         >
           {displayNickname(row.nickname, 10)}
